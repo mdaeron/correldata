@@ -27,6 +27,9 @@ class correl_array(_np.ndarray):
     s = property(fget = _np.vectorize(lambda x : x.s))
 
 
+def is_symmetric_positive_semidefinite(x):
+	return _np.all(_np.linalg.eigvals(x) >= 0) and _np.all(x - x.T == 0)
+
 def smart_type(x):
 	'''
 	Tries to convert string `x` to a float if it includes a decimal point, or
@@ -155,6 +158,9 @@ def read_data(data, sep = ','):
 			else:
 				if f'{vi}_{vj}' in covar:
 					CM[N*i:N*i+N,N*j:N*j+N] = covar[f'{vi}_{vj}']
+	
+	if not is_symmetric_positive_semidefinite(CM):
+		raise _np.linalg.LinAlgError('The complete covariance matrix is not symmetric positive-semidefinite.')
 	
 	corvalues = correl_array(_uc.correlated_values(X, CM))
 
