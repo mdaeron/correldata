@@ -45,7 +45,7 @@ def smart_type(x):
 	return y
 
 
-def read_data(data, sep = ','):
+def read_data(data, sep = ',', validate_covar = True):
 
 	data = [[smart_type(e.strip()) for e in l.split(sep)] for l in data.split('\n')]
 	N = len(data) - 1
@@ -142,12 +142,6 @@ def read_data(data, sep = ','):
 					if k == f'{j1}_{j2}':
 						covar[f'{j2}_{j1}'] = covar[f'{j1}_{j2}'].T
 			
-# 	print(f'{ nakedvalues = }')
-# 	print(f'{      values = }')
-# 	print(f'{          se = }')
-# 	print(f'{      correl = }')
-# 	print(f'{       covar = }')
-
 	X = _np.array([_ for k in values for _ in values[k]])
 	CM = _np.zeros((X.size, X.size))
 	for i, vi in enumerate(values):
@@ -159,7 +153,7 @@ def read_data(data, sep = ','):
 				if f'{vi}_{vj}' in covar:
 					CM[N*i:N*i+N,N*j:N*j+N] = covar[f'{vi}_{vj}']
 	
-	if not is_symmetric_positive_semidefinite(CM):
+	if validate_covar and not is_symmetric_positive_semidefinite(CM):
 		raise _np.linalg.LinAlgError('The complete covariance matrix is not symmetric positive-semidefinite.')
 	
 	corvalues = correl_array(_uc.correlated_values(X, CM))
@@ -172,9 +166,9 @@ def read_data(data, sep = ','):
 	return allvalues
 
 
-def read_data_from_file(filename, sep = ','):
+def read_data_from_file(filename, **kwargs):
 	with open(filename) as fid:
-		return read_data(fid.read(), sep = sep)
+		return read_data(fid.read(), **kwargs)
 
 def data_string(
 	data,
