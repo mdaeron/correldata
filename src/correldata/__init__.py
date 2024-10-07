@@ -7,8 +7,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-05'
-__version__   = '0.1.0'
+__date__      = '2024-10-07'
+__version__   = '1.0.0'
 
 
 import numpy as _np
@@ -40,7 +40,7 @@ def smart_type(x):
 		y = float(x)
 	except ValueError:
 		return x
-	if '.' not in x and y % 1 == 0:
+	if y % 1 == 0 and '.' not in x:
 		return int(y)
 	return y
 
@@ -174,6 +174,7 @@ def data_string(
 	data,
 	sep = ',',
 	float_fmt = 'zg',
+	max_correl_precision = 6,
 	fields = None,
 	align = '>',
 	atol = 1e-9,
@@ -191,7 +192,7 @@ def data_string(
 			CM = _uc.correlation_matrix(data[f])
 			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
 				for i in range(N):
-					cols.append(['' if i else f'correl_{f}'] + [f'{CM[i,j] if abs(CM[i,j]) > atol else 0:{float_fmt}}' for j in range(N)])
+					cols.append(['' if i else f'correl_{f}'] + [f'{CM[i,j] if abs(CM[i,j]) > atol else 0:z{max_correl_precision}f}'.rstrip('0') for j in range(N)])
 					
 		else:
 			cols.append([f] + [str(_) for _ in data[f]])
@@ -201,7 +202,7 @@ def data_string(
 			CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N,N:]
 			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
 				for k in range(N):
-					cols.append(['' if k else f'correl_{ufields[i]}_{ufields[j]}'] + [f'{CM[k,l] if abs(CM[k,l]) > atol else 0:{float_fmt}}' for l in range(N)])
+					cols.append(['' if k else f'correl_{ufields[i]}_{ufields[j]}'] + [f'{CM[k,l] if abs(CM[k,l]) > atol else 0:z{max_correl_precision}f}'.rstrip('0') for l in range(N)])
 	
 	lines = list(map(list, zip(*cols)))
 
