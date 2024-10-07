@@ -1,5 +1,7 @@
 # correldata
 
+[![PyPI Version](https://img.shields.io/pypi/v/correldata.svg)](https://pypi.python.org/pypi/correldata)
+
 Read/write vectors of correlated data from/to a csv file.
 
 These data are stored in a dictionary, whose values are numpy arrays
