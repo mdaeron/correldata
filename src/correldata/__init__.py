@@ -14,8 +14,6 @@ __version__   = '1.0.0'
 import numpy as _np
 import uncertainties as _uc
 
-from csv import DictReader as _dr
-
 
 class correl_array(_np.ndarray):
 
