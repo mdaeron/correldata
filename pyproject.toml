@@ -8,3 +8,8 @@ dependencies = [
     "numpy>=2.1.1",
     "uncertainties>=3.2.2",
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "pdoc>=14.7.0",
+]
