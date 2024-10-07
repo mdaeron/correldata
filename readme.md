@@ -35,22 +35,24 @@ correspond, respectively, to the lines and columns of this matrix.
 
 ```py
 import correldata
-data  = """
-Sample, Tacid,  D47,   SE,         correl,,,  D48, covar,,,          correl_D47_D48
-   FOO,   90., .245, .005,      1, 0.5, 0.5, .145,  4e-4, 1e-4, 1e-4, 0.5,   0,   0
-   BAR,   90., .246, .005,    0.5,   1, 0.5, .146,  1e-4, 4e-4, 1e-4,   0, 0.5,   0
-   BAZ,   90., .247, .005,    0.5, 0.5,   1, .147,  1e-4, 1e-4, 4e-4,   0,   0, 0.5
-"""[1:-1]
+
+data  = '''
+Sample, Tacid,  D47,   SE,        correl,,,  D48,           covar,,, correl_D47_D48
+   FOO,   90., .245, .005,     1, 0.5, 0.5, .145,  4e-4, 1e-4, 1e-4,  0.5, 0.0, 0.0
+   BAR,   90., .246, .005,   0.5,   1, 0.5, .146,  1e-4, 4e-4, 1e-4,  0.0, 0.5, 0.0
+   BAZ,   90., .247, .005,   0.5, 0.5,   1, .147,  1e-4, 1e-4, 4e-4,  0.0, 0.0, 0.5
+'''[1:-1]
+
 print(correldata.read_data(data))
 
 # yields:
 # 
-# > {
+# {
 #     'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
 #     'Tacid': array([90., 90., 90.]),
 #     'D47': _correl_array([0.245+/-0.004999999999999998, 0.246+/-0.004999999999999997, 0.247+/-0.005], dtype=object),
-#     'D48': _correl_array([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object)
-#   }
+#     'D48': _correl_array([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object),
+# }
 ```
 
 ## Documentation / API
