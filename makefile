@@ -5,6 +5,6 @@ doc:
 	@echo "Building documentation..."
 	@cd src; uv run python ../build_doc.py
 
-publish:
+publish: doc
 	@echo "Publishing to PyPI..."
 	@uv run flit publish
