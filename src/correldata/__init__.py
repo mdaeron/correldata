@@ -12,7 +12,7 @@ __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
 __date__      = '2024-10-08'
-__version__   = '1.0.1'
+__version__   = '1.0.2'
 
 
 import os as _os
@@ -238,11 +238,11 @@ def data_string(
 	data: dict,
 	sep: str = ',',
 	float_fmt: str = 'zg',
-	max_correl_precision: int = 6,
+	max_correl_precision: int = 9,
 	fields: list = None,
 	align: str = '>',
-	atol: float = 1e-9,
-	rtol: float = 1e-9,
+	atol: float = 1e-12,
+	rtol: float = 1e-12,
 ):
 	'''
 	Generate CSV-like string from correlated data
