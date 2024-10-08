@@ -8,11 +8,11 @@ as defined in the [uncertainties](https://pypi.org/project/uncertainties) librar
 
 
 __author__    = 'Mathieu Daëron'
-__contact__   = 'daeron@lsce.ipsl.fr'
+__contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-07'
-__version__   = '1.0.0'
+__date__      = '2024-10-08'
+__version__   = '1.0.1'
 
 
 import os as _os
@@ -269,7 +269,7 @@ def data_string(
 			CM = _uc.correlation_matrix(data[f])
 			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
 				for i in range(N):
-					cols.append(['' if i else f'correl_{f}'] + [f'{CM[i,j] if abs(CM[i,j]) > atol else 0:z{max_correl_precision}f}'.rstrip('0') for j in range(N)])
+					cols.append(['' if i else f'correl_{f}'] + [f'{CM[i,j] if abs(CM[i,j]) > atol else 0:z.{max_correl_precision}f}'.rstrip('0') for j in range(N)])
 
 		else:
 			cols.append([f] + [str(_) for _ in data[f]])
@@ -279,7 +279,7 @@ def data_string(
 			CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N,N:]
 			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
 				for k in range(N):
-					cols.append(['' if k else f'correl_{ufields[i]}_{ufields[j]}'] + [f'{CM[k,l] if abs(CM[k,l]) > atol else 0:z{max_correl_precision}f}'.rstrip('0') for l in range(N)])
+					cols.append(['' if k else f'correl_{ufields[i]}_{ufields[j]}'] + [f'{CM[k,l] if abs(CM[k,l]) > atol else 0:z.{max_correl_precision}f}'.rstrip('0') for l in range(N)])
 
 	lines = list(map(list, zip(*cols)))
 
@@ -306,11 +306,3 @@ def save_data_to_file(data, filename, **kwargs):
 	with open(filename, 'w') as fid:
 		return fid.write(data_string(data, **kwargs))
 
-
-if __name__ == '__main__':
-
-	data = read_data_from_file('data.csv')
-	print(data)
-	print()
-	print(data_string(data))
-	save_data_to_file(data, 'saved_data.csv')
