@@ -22,18 +22,38 @@ import uncertainties as _uc
 
 class uarray(_np.ndarray):
 
+    __doc__ = """
+    1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
+    of [ufloat](https://pypi.org/project/uncertainties) values
+    """
+
     def __new__(cls, a):
         obj = _np.asarray(a).view(cls)
         return obj
     
     n = property(fget = _np.vectorize(lambda x : x.n))
+    """Return the array of nominal values (read-only)."""
+
     s = property(fget = _np.vectorize(lambda x : x.s))
+    """Return the array of standard errors (read-only)"""
+
     correl = property(fget = lambda x: _np.array(_uc.correlation_matrix(x)))
+    """Return the correlation matrix of the array elements (read-only)"""
+
     covar = property(fget = lambda x: _np.array(_uc.covariance_matrix(x)))
+    """Return the covariance matrix of the array elements (read-only)"""
+
     nv = n
+    "Alias for `uarray.nv`"
+
     se = s
+    "Alias for `uarray.s`"
+
     cor = correl
+    "Alias for `uarray.correl`"
+
     cov = covar
+    "Alias for `uarray.covar`"    
 
 
 def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
