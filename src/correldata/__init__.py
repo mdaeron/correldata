@@ -11,8 +11,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-08'
-__version__   = '1.0.2'
+__date__      = '2024-10-09'
+__version__   = '1.1.0'
 
 
 import os as _os
