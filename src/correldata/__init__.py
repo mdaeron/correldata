@@ -20,7 +20,7 @@ import numpy as _np
 import uncertainties as _uc
 
 
-class _correl_array(_np.ndarray):
+class uarray(_np.ndarray):
 
     def __new__(cls, a):
         obj = _np.asarray(a).view(cls)
@@ -28,6 +28,12 @@ class _correl_array(_np.ndarray):
     
     n = property(fget = _np.vectorize(lambda x : x.n))
     s = property(fget = _np.vectorize(lambda x : x.s))
+    correl = property(fget = lambda x: _np.array(_uc.correlation_matrix(x)))
+    covar = property(fget = lambda x: _np.array(_uc.covariance_matrix(x)))
+    nv = n
+    se = s
+    cor = correl
+    cov = covar
 
 
 def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
@@ -101,8 +107,8 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	# > {
 	#     'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
 	#     'Tacid': array([90., 90., 90.]),
-	#     'D47': _correl_array([0.245+/-0.004999999999999998, 0.246+/-0.004999999999999997, 0.247+/-0.005], dtype=object),
-	#     'D48': _correl_array([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object)
+	#     'D47': uarray([0.245+/-0.004999999999999998, 0.246+/-0.004999999999999997, 0.247+/-0.005], dtype=object),
+	#     'D48': uarray([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object)
 	#   }
 	```
 	'''
@@ -213,7 +219,7 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	if validate_covar and not is_symmetric_positive_semidefinite(CM):
 		raise _np.linalg.LinAlgError('The complete covariance matrix is not symmetric positive-semidefinite.')
 
-	corvalues = _correl_array(_uc.correlated_values(X, CM))
+	corvalues = uarray(_uc.correlated_values(X, CM))
 
 	allvalues = nakedvalues
 
@@ -261,7 +267,7 @@ def data_string(
 		fields = [_ for _ in data]
 	cols, ufields = [], []
 	for f in fields:
-		if isinstance(data[f], _correl_array):
+		if isinstance(data[f], uarray):
 			ufields.append(f)
 			N = data[f].size
 			cols.append([f] + [f'{_.n:{float_fmt}}' for _ in data[f]])
@@ -305,4 +311,3 @@ def save_data_to_file(data, filename, **kwargs):
 	'''
 	with open(filename, 'w') as fid:
 		return fid.write(data_string(data, **kwargs))
-
