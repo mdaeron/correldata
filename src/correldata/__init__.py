@@ -11,14 +11,15 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-09'
-__version__   = '1.1.0'
+__date__      = '2024-10-11'
+__version__   = '1.2.0'
 
 
 import os as _os
 import numpy as _np
 import uncertainties as _uc
 
+from typing import Callable, Hashable, Any
 
 class uarray(_np.ndarray):
 
@@ -260,12 +261,48 @@ def read_data_from_file(filename: str | _os.PathLike, **kwargs):
 	with open(filename) as fid:
 		return read_data(fid.read(), **kwargs)
 
+
+def f2s(
+	x: Any,
+	f: (str | Callable | dict),
+	k: Hashable = None,
+	fb: (str | Callable) = 'z.6g',
+) -> str:
+	'''
+	Format `x` according to format `f`
+	
+	* If `f` is a string, return `f'{x:{f}}'`
+	* If `f` is a callable, return `f(x)`
+	* If `f` is a dict and optional argument `k` is a hashable,
+	  return f2s(x, f[k]), otherwise return f2s(x, fb)
+	'''
+
+	if isinstance (x, str):
+		return x
+	if isinstance (f, str):
+		return f'{x:{f}}'
+	if isinstance (f, Callable):
+		return f(x)
+	if isinstance (f, dict):
+		if k in f:
+			return f2s(x, f[k])
+		if isinstance (fb, str):
+			return f'{x:{fb}}'
+		if isinstance (fb, Callable):
+			return fb(x)
+	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a dict nor a callable.')
+	
+
+
 def data_string(
 	data: dict,
 	sep: str = ',',
-	float_fmt: str = 'zg',
-	max_correl_precision: int = 9,
-	fields: list = None,
+	include_fields: list = None,
+	exclude_fields: list = [],
+	float_format: (str | dict | Callable) = 'z.6g',
+	correl_format: (str | dict | Callable) = 'z.6f',
+	default_float_format: (str | Callable) = 'z.6g',
+	default_correl_format: (str | Callable) = 'z.6f',
 	align: str = '>',
 	atol: float = 1e-12,
 	rtol: float = 1e-12,
@@ -276,36 +313,97 @@ def data_string(
 	**Arguments**
 	- `data`: dict of arrays with strings, floats or correlated data
 	- `sep`: the CSV separator
-	- `float_fmt`: formatting string for float values
-	- `max_correl_precision`: number of post-decimal digits for correlation values
-	- `fields`: subset of fields to write; if `None`, write all fields
+	- `include_fields`: subset of fields to write; if `None`, write all fields
+	- `exclude_fields`: subset of fields to ignore (takes precedence over `include_fields`);
+	  to exclude only the SE for field `foo`, include `SE_foo`; same goes for `correl_foo`
+	- `float_format`: formatting for float values. May be a string (ex: `'z.3f'`), a callable
+	  (ex: `lambda x: '.2f' if x else '0'`), or a dictionary of strings and/or callables, with dict keys
+	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': (lambda x: str(x))}`).
+	- `correl_format`: same as `float_format`, but applies to correlation matrix elements
+	- `default_float_format`: only used when `float_format` is a dict; in that case, fields
+	  missing from `float_format.keys()` will use `default_float_format` instead.
+	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': `lambda x: str(x)`}`).
+	- `default_correl_format`: same as `default_float_format`, but applies to `correl_format`
 	- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
-	- `atol`: passed to _np.allclose(),
-	- `rtol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html),
+	- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
+	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
+	- `rtol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
+	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
+	
+	
+	**Example**
+	
+	```py
+	from correldata import _uc
+	from correldata import _np
+	from correldata import *
+	
+	X = uarray(_uc.correlated_values([1., 2., 3.], _np.eye(3)*0.09))
+	Y = uarray(_uc.correlated_values([4., 5., 6.], _np.eye(3)*0.16))
+	
+	data = dict(X=X, Y=Y, Z=X+Y)
+	
+	print(data_string(data, float_format = 'z.1f', correl_format = 'z.1f'))
+	
+	# yields:
+	# 
+	#   X, SE_X,   Y, SE_Y,   Z, SE_Z, correl_X_Z,    ,    , correl_Y_Z,    ,    
+	# 1.0,  0.3, 4.0,  0.4, 5.0,  0.5,        0.6, 0.0, 0.0,        0.8, 0.0, 0.0
+	# 2.0,  0.3, 5.0,  0.4, 7.0,  0.5,        0.0, 0.6, 0.0,        0.0, 0.8, 0.0
+	# 3.0,  0.3, 6.0,  0.4, 9.0,  0.5,        0.0, 0.0, 0.6,        0.0, 0.0, 0.8
+	```
 	'''
-	if fields is None:
-		fields = [_ for _ in data]
+	if include_fields is None:
+		include_fields = [_ for _ in data]
 	cols, ufields = [], []
-	for f in fields:
+	for f in include_fields:
+		if f in exclude_fields:
+			continue
 		if isinstance(data[f], uarray):
 			ufields.append(f)
 			N = data[f].size
-			cols.append([f] + [f'{_.n:{float_fmt}}' for _ in data[f]])
-			cols.append([f'SE_{f}'] + [f'{_.s:{float_fmt}}' for _ in data[f]])
-			CM = _uc.correlation_matrix(data[f])
-			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
-				for i in range(N):
-					cols.append(['' if i else f'correl_{f}'] + [f'{CM[i,j] if abs(CM[i,j]) > atol else 0:z.{max_correl_precision}f}'.rstrip('0') for j in range(N)])
+			cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f].n])
+			if f'SE_{f}' not in exclude_fields:
+				cols.append([f'SE_{f}'] + [f2s(_, float_format, f, default_float_format) for _ in data[f].s])
+			if f'correl_{f}' not in exclude_fields:
+				CM = _uc.correlation_matrix(data[f])
+				if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
+					for i in range(N):
+						cols.append(
+							['' if i else f'correl_{f}']
+							+ [
+								f2s(
+									CM[i,j],
+									correl_format,
+									f,
+									default_correl_format,
+								)
+								for j in range(N)
+							]
+						)
 
 		else:
-			cols.append([f] + [str(_) for _ in data[f]])
+			cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f]])
 
 	for i in range(len(ufields)):
 		for j in range(i):
-			CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N,N:]
-			if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
+			if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
+				continue
+			CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N, -N:]
+			if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
 				for k in range(N):
-					cols.append(['' if k else f'correl_{ufields[i]}_{ufields[j]}'] + [f'{CM[k,l] if abs(CM[k,l]) > atol else 0:z.{max_correl_precision}f}'.rstrip('0') for l in range(N)])
+					cols.append(
+						['' if k else f'correl_{ufields[j]}_{ufields[i]}']
+						+ [
+							f2s(
+								CM[k,l],
+								correl_format,
+								f,
+								default_correl_format,
+							)
+							for l in range(N)
+						]
+					)
 
 	lines = list(map(list, zip(*cols)))
 
