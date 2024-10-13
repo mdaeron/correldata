@@ -12,7 +12,7 @@ __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
 __date__      = '2024-10-13'
-__version__   = '1.2.1'
+__version__   = '1.2.2'
 
 
 import os as _os
@@ -61,7 +61,13 @@ def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
 	'''
 	Test whether 2-D array `M` is symmetric and positive semidefinite.
 	'''
-	return _np.all(_np.linalg.eigvals(M) >= 0) and _np.allclose(M, M.T)
+	ev = _np.linalg.eigvals(M)
+	return (
+		_np.allclose(M, M.T) # M is symmetric
+		and _np.all(
+			(ev > 0) | _np.isclose(ev, 0)
+		) # all eignevalues are either real and strictly positive or close to zero
+	)
 
 
 def smart_type(x: str):
