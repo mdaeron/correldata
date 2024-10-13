@@ -12,7 +12,7 @@ __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
 __date__      = '2024-10-13'
-__version__   = '1.2.2'
+__version__   = '1.2.3'
 
 
 import os as _os
@@ -243,7 +243,17 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 				if f'{vi}_{vj}' in covar:
 					CM[N*i:N*i+N,N*j:N*j+N] = covar[f'{vi}_{vj}']
 
-	if validate_covar and not is_symmetric_positive_semidefinite(CM):
+	s = _np.diag(CM)**.5
+	s[s==0] = 1.
+	invs = _np.diag(s**-1)
+
+	if (
+		validate_covar
+		and not (
+			is_symmetric_positive_semidefinite(CM)
+			or is_symmetric_positive_semidefinite(invs @ CM @ invs)
+		)
+	):
 		raise _np.linalg.LinAlgError('The complete covariance matrix is not symmetric positive-semidefinite.')
 
 	corvalues = uarray(_uc.correlated_values(X, CM))
