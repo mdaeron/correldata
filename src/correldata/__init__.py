@@ -11,8 +11,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-13'
-__version__   = '1.2.3'
+__date__      = '2024-10-15'
+__version__   = '1.3.0'
 
 
 import os as _os
@@ -23,38 +23,55 @@ from typing import Callable, Hashable, Any
 
 class uarray(_np.ndarray):
 
-    __doc__ = """
-    1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
-    of [ufloat](https://pypi.org/project/uncertainties) values
-    """
+	__doc__ = """
+	1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
+	of [ufloat](https://pypi.org/project/uncertainties) values
+	"""
 
-    def __new__(cls, a):
-        obj = _np.asarray(a).view(cls)
-        return obj
-    
-    n = property(fget = _np.vectorize(lambda x : x.n))
-    """Return the array of nominal values (read-only)."""
+	def __new__(cls, a):
+		obj = _np.asarray(a).view(cls)
+		return obj
+	
+	@property
+	def nv(self):
+		"""Return the array of nominal values (read-only)."""
+		return _uc.unumpy.nominal_values(_np.array(self))
 
-    s = property(fget = _np.vectorize(lambda x : x.s))
-    """Return the array of standard errors (read-only)"""
+	@property
+	def se(self):
+		"""Return the array of standard errors (read-only)"""
+		return _uc.unumpy.std_devs(_np.array(self))
 
-    correl = property(fget = lambda x: _np.array(_uc.correlation_matrix(x)))
-    """Return the correlation matrix of the array elements (read-only)"""
+	@property
+	def correl(self):
+		"""Return the correlation matrix of the array elements (read-only)"""
+		return _np.array(_uc.correlation_matrix(self))
 
-    covar = property(fget = lambda x: _np.array(_uc.covariance_matrix(x)))
-    """Return the covariance matrix of the array elements (read-only)"""
-
-    nv = n
-    "Alias for `uarray.nv`"
-
-    se = s
-    "Alias for `uarray.s`"
-
-    cor = correl
-    "Alias for `uarray.correl`"
-
-    cov = covar
-    "Alias for `uarray.covar`"    
+	@property
+	def covar(self):
+		"""Return the covariance matrix of the array elements (read-only)"""
+		return _np.array(_uc.covariance_matrix(self))
+	
+	@property
+	def mahalanobis(self):
+		"""Return the squared Mahalanobis distance from zero of the array (read-only)"""
+		flatself = self.n.flatten().reshape((1, self.size))
+		return (flatself @ _np.linalg.inv(self.covar) @ flatself.T)[0,0]
+	
+	n = nv
+	"Alias for `uarray.nv`"
+	
+	s = se
+	"Alias for `uarray.se`"
+	
+	cor = correl
+	"Alias for `uarray.correl`"
+	
+	cov = covar
+	"Alias for `uarray.covar`"
+	
+	m = mahalanobis
+	"Alias for `uarray.mahalanobis`"
 
 
 def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
@@ -70,19 +87,16 @@ def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
 	)
 
 
-def smart_type(x: str):
+def smart_type(s: str) -> (int | float | str):
 	'''
-	Tries to convert string `x` to a float if it includes a decimal point, or
-	to an integer if it does not. If both attempts fail, return the original
-	string unchanged.
+	Tries to convert string `s` to an `int`, or to an `float` if that fails.
+	If both fail, return the original string unchanged.
 	'''
-	try:
-		y = float(x)
-	except ValueError:
-		return x
-	if y % 1 == 0 and '.' not in x:
-		return int(y)
-	return y
+	try: return int(s)
+	except: pass
+	try: return float(s)
+	except: pass
+	return s
 
 
 def read_data(data: str, sep: str = ',', validate_covar: bool = True):
