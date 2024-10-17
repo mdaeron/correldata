@@ -360,7 +360,7 @@ def data_string(
 	- `show_nv`: show nominal values
 	- `show_se`: show standard errors
 	- `show_correl`: show correlations for any given field (ex: `correl_X`)
-	- `show_mixed_correl`:  show correlations between different fields (ex: `correl_X_Y`)
+	- `show_mixed_correl`: show correlations between different fields (ex: `correl_X_Y`)
 	- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
 	- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
 	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
