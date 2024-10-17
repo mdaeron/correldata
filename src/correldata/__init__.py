@@ -11,8 +11,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-15'
-__version__   = '1.3.0'
+__date__      = '2024-10-17'
+__version__   = '1.4.0'
 
 
 import os as _os
@@ -306,7 +306,6 @@ def f2s(
 	* If `f` is a dict and optional argument `k` is a hashable,
 	  return f2s(x, f[k]), otherwise return f2s(x, fb)
 	'''
-
 	if isinstance (x, str):
 		return x
 	if isinstance (f, str):
@@ -333,6 +332,10 @@ def data_string(
 	correl_format: (str | dict | Callable) = 'z.6f',
 	default_float_format: (str | Callable) = 'z.6g',
 	default_correl_format: (str | Callable) = 'z.6f',
+	show_nv: bool = True,
+	show_se: bool = True,
+	show_correl: bool = True,
+	show_mixed_correl: bool = True,
 	align: str = '>',
 	atol: float = 1e-12,
 	rtol: float = 1e-12,
@@ -354,6 +357,10 @@ def data_string(
 	  missing from `float_format.keys()` will use `default_float_format` instead.
 	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': `lambda x: str(x)`}`).
 	- `default_correl_format`: same as `default_float_format`, but applies to `correl_format`
+	- `show_nv`: show nominal values
+	- `show_se`: show standard errors
+	- `show_correl`: show correlations for any given field (ex: `correl_X`)
+	- `show_mixed_correl`:  show correlations between different fields (ex: `correl_X_Y`)
 	- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
 	- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
 	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
@@ -392,10 +399,11 @@ def data_string(
 		if isinstance(data[f], uarray):
 			ufields.append(f)
 			N = data[f].size
-			cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f].n])
-			if f'SE_{f}' not in exclude_fields:
+			if show_nv:
+				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f].n])
+			if show_se and (f'SE_{f}' not in exclude_fields):
 				cols.append([f'SE_{f}'] + [f2s(_, float_format, f, default_float_format) for _ in data[f].s])
-			if f'correl_{f}' not in exclude_fields:
+			if show_correl and (f'correl_{f}' not in exclude_fields):
 				CM = _uc.correlation_matrix(data[f])
 				if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
 					for i in range(N):
@@ -411,29 +419,29 @@ def data_string(
 								for j in range(N)
 							]
 						)
+		elif show_nv:
+				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f]])
 
-		else:
-			cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f]])
-
-	for i in range(len(ufields)):
-		for j in range(i):
-			if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
-				continue
-			CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N, -N:]
-			if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
-				for k in range(N):
-					cols.append(
-						['' if k else f'correl_{ufields[j]}_{ufields[i]}']
-						+ [
-							f2s(
-								CM[k,l],
-								correl_format,
-								f,
-								default_correl_format,
-							)
-							for l in range(N)
-						]
-					)
+	if show_mixed_correl:
+		for i in range(len(ufields)):
+			for j in range(i):
+				if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
+					continue
+				CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N, -N:]
+				if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
+					for k in range(N):
+						cols.append(
+							['' if k else f'correl_{ufields[j]}_{ufields[i]}']
+							+ [
+								f2s(
+									CM[k,l],
+									correl_format,
+									f,
+									default_correl_format,
+								)
+								for l in range(N)
+							]
+						)
 
 	lines = list(map(list, zip(*cols)))
 
