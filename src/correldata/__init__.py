@@ -11,8 +11,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-17'
-__version__   = '1.4.0'
+__date__      = '2024-10-29'
+__version__   = '1.5.0'
 
 
 import os as _os
@@ -20,6 +20,10 @@ import numpy as _np
 import uncertainties as _uc
 
 from typing import Callable, Hashable, Any
+from uncertainties.unumpy import nominal_values as nv
+
+nv = nv
+"""Alias for [`uncertainties.unumpy.nominal_values()`](https://pythonhosted.org/uncertainties/numpy_guide.html#uncertainties-and-nominal-values)"""
 
 class uarray(_np.ndarray):
 
