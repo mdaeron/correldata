@@ -32,18 +32,13 @@ macos = "12.7.5"
 [tool.pixi.pypi-dependencies]
 correldata = { path = ".", editable = true }
 
-[tool.pixi.feature.doc.dependencies]
-pdoc = ">=14.4.0,<15"
-
-[tool.pixi.feature.doc.tasks]
-doc = {cmd = 'python build_doc.py'}
-
 [tool.pixi.feature.dev.dependencies]
+pdoc = ">=14.4.0,<15"
 flit = ">=3.9.0,<4"
 
 [tool.pixi.feature.dev.tasks]
+doc     = {cmd = 'python build_doc.py'}
 publish = {cmd = 'flit publish'}
 
 [tool.pixi.environments]
 dev = ["dev"]
-doc = ["doc"]
