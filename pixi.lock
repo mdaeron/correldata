@@ -200,9 +200,9 @@ packages:
   timestamp: 1728479405343
 - kind: pypi
   name: correldata
-  version: 1.5.0
+  version: 1.6.0
   path: .
-  sha256: e888ec4ed9643b9cafc4b10c53ef8df12aaadd52736481ca473a6c25c1d71251
+  sha256: 3f895df350ae69306e06801339e930a3a24b4d78dc4ef6f9710b25367dd2ffd1
   requires_dist:
   - numpy>=2.1.1
   - uncertainties>=3.2.2

@@ -37,7 +37,7 @@ pdoc = ">=14.4.0,<15"
 flit = ">=3.9.0,<4"
 
 [tool.pixi.feature.dev.tasks]
-doc     = {cmd = 'python build_doc.py'}
+doc     = {cmd = 'python ../build_doc.py', cwd = 'src'}
 publish = {cmd = 'flit publish'}
 
 [tool.pixi.environments]

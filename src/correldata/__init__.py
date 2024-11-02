@@ -11,8 +11,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'mathieu@daeron.fr'
 __copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-10-29'
-__version__   = '1.5.0'
+__date__      = '2024-11-02'
+__version__   = '1.6.0'
 
 
 import os as _os
@@ -29,7 +29,7 @@ class uarray(_np.ndarray):
 
 	__doc__ = """
 	1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
-	of [ufloat](https://pypi.org/project/uncertainties) values
+	of [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values
 	"""
 
 	def __new__(cls, a):
@@ -459,9 +459,10 @@ def data_string(
 	return '\n'.join([sep.join(l) for l in lines])
 
 
-
 def save_data_to_file(data, filename, **kwargs):
 	'''
+	aaa
+	
 	Write correlated data to a CSV file.
 
 	**Arguments**
@@ -471,3 +472,134 @@ def save_data_to_file(data, filename, **kwargs):
 	'''
 	with open(filename, 'w') as fid:
 		return fid.write(data_string(data, **kwargs))
+
+
+def as_uarray(
+	X: (uarray | _np.ndarray | _uc.UFloat | float),
+	Xse: (_np.ndarray | float | None) = None,
+	CM: (_np.ndarray | None) = None,
+) -> uarray:
+	"""
+	Convert the input to an uarray. If the input is a single float or
+	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),
+	yields an uarray of size 1.
+	
+	**Arguments**
+	* `X`: nominal value(s)
+	* `CM`: covariance matrix of X; not needed if elements of X are of type
+		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+		or if `Xse` is specified.
+	* `Xse`,: SE of X; not needed if elements of X are of type
+		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+		or if `CM` is specified.
+	
+	If neither `CM` nor `Xse` are specified, assume SE = 0.
+	"""
+	
+	if isinstance(X, uarray):
+		return X
+
+	if isinstance(X, _np.ndarray):
+		if _np.all([isinstance(_, _uc.UFloat) for _ in X]):
+			return uarray(X)
+		else:
+			X = X.astype(float)
+			
+			if CM is not None:
+				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+
+			if CM is None:
+				if Xse is None:
+					Xse = X * 0
+
+				CM = _np.diag((*Xse,))**2
+
+			return uarray(_uc.correlated_values(X, CM))
+				
+	if isinstance(X, _uc.UFloat):
+		return uarray([X])
+
+	if isinstance(X, (float, int)):
+
+		if CM is not None:
+			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+			Xse = CM[0,0]**0.5
+
+		return uarray([_uc.ufloat(X, Xse)])
+
+
+def as_pair_of_uarrays(
+	X: (uarray | _np.ndarray | _uc.UFloat | float),
+	Y: (uarray | _np.ndarray | _uc.UFloat | float),
+	Xse: (_np.ndarray | float | None) = None,
+	Yse: (_np.ndarray | float | None) = None,
+	CM: (_np.ndarray | None) = None,
+) -> uarray:
+	"""
+	Convert the input to a pair of uarrays.
+	
+	**Arguments**
+	* `X`: x values
+	* `Y`: y values
+	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type
+		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+		or if (`Xse`, `Yse`) are specified.
+	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type
+		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+		or if `CM` is specified.
+	
+	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.
+	"""
+	
+	if type(X) is not type(Y):
+		raise TypeError(f'X ({type(X)}) and Y ({type(Y)}) must have the same type.')
+
+	if isinstance(X, uarray):
+		return (X, Y)
+
+	if isinstance(X, _np.ndarray):
+		if (
+			_np.all([isinstance(_, _uc.UFloat) for _ in X])
+			and
+			_np.all([isinstance(_, _uc.UFloat) for _ in Y])
+		):
+			return uarray(X), uarray(Y)
+		else:
+			X = X.astype(float)
+			Y = Y.astype(float)
+			
+			if CM is not None:
+				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+				if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
+
+			if CM is None:
+				if Xse is None:
+					Xse = X * 0
+				if Yse is None:
+					Yse = Y * 0
+
+				CMx = _np.diag((*Xse,))**2
+				CMy = _np.diag((*Yse,))**2			
+				return uarray(_uc.correlated_values(X, CMx)), uarray(_uc.correlated_values(Y, CMy))
+
+			else:
+				XY = uarray(_uc.correlated_values([*X, *Y], CM))
+				return XY[:X.size], XY[X.size:]
+				
+	if isinstance(X, _uc.UFloat):
+		return uarray([X]), uarray([Y])
+
+	if isinstance(X, (float, int)):
+
+		if CM is not None:
+			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+			if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
+
+		if CM is None:
+			if Xse is None: raise ValueError('Not enough information: specify either CM or Xse.')
+			if Yse is None: raise ValueError('Not enough information: specify either CM or Yse.')				
+
+			CM = _np.diag([Xse, Yse])**2
+
+		XY = uarray(_uc.correlated_values([X, Y], CM))
+		return XY[:1], XY[1:]
