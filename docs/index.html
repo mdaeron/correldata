@@ -116,6 +116,12 @@
                 </ul>
 
             </li>
+            <li>
+                    <a class="function" href="#as_uarray">as_uarray</a>
+            </li>
+            <li>
+                    <a class="function" href="#as_pair_of_uarrays">as_pair_of_uarrays</a>
+            </li>
     </ul>
 
 
@@ -744,135 +750,135 @@ as defined in the <a href="https://pypi.org/project/uncertainties">uncertainties
 </span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a>			<span class="k">return</span> <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">str</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 </span><span id="L-600"><a href="#L-600"><span class="linenos">600</span></a>
 </span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a>
-</span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a><span class="c1"># def as_uarray(</span>
-</span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a><span class="c1"># 	X: (uarray | _np.ndarray | _uc.UFloat | float),</span>
-</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a><span class="c1"># 	Xse: (_np.ndarray | float | None) = None,</span>
-</span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a><span class="c1"># 	CM: (_np.ndarray | None) = None,</span>
-</span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a><span class="c1"># ) -&gt; uarray:</span>
-</span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a><span class="c1"># 	&quot;&quot;&quot;</span>
-</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a><span class="c1"># 	Convert the input to an uarray. If the input is a single float or</span>
-</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a><span class="c1"># 	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),</span>
-</span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a><span class="c1"># 	yields an uarray of size 1.</span>
+</span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a><span class="k">def</span><span class="w"> </span><span class="nf">as_uarray</span><span class="p">(</span>
+</span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a>	<span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>	<span class="n">Xse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a>	<span class="n">CM</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">uarray</span><span class="p">:</span>
+</span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a><span class="sd">	Convert the input to an uarray. If the input is a single float or</span>
+</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a><span class="sd">	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),</span>
+</span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a><span class="sd">	yields an uarray of size 1.</span>
 </span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>
-</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a><span class="c1"># 	**Arguments**</span>
-</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a><span class="c1"># 	* `X`: nominal value(s)</span>
-</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a><span class="c1"># 	* `CM`: covariance matrix of X; not needed if elements of X are of type</span>
-</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a><span class="c1"># 		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
-</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a><span class="c1"># 		or if `Xse` is specified.</span>
-</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a><span class="c1"># 	* `Xse`,: SE of X; not needed if elements of X are of type</span>
-</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a><span class="c1"># 		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
-</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a><span class="c1"># 		or if `CM` is specified.</span>
+</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a><span class="sd">	**Arguments**</span>
+</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a><span class="sd">	* `X`: nominal value(s)</span>
+</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a><span class="sd">	* `CM`: covariance matrix of X; not needed if elements of X are of type</span>
+</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a><span class="sd">		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a><span class="sd">		or if `Xse` is specified.</span>
+</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a><span class="sd">	* `Xse`,: SE of X; not needed if elements of X are of type</span>
+</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a><span class="sd">		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a><span class="sd">		or if `CM` is specified.</span>
 </span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a>
-</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a><span class="c1"># 	If neither `CM` nor `Xse` are specified, assume SE = 0.</span>
-</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a><span class="c1"># 	&quot;&quot;&quot;</span>
+</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a><span class="sd">	If neither `CM` nor `Xse` are specified, assume SE = 0.</span>
+</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a><span class="sd">	&quot;&quot;&quot;</span>
 </span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a>
-</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a><span class="c1"># 	if isinstance(X, uarray):</span>
-</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a><span class="c1"># 		return X</span>
+</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">uarray</span><span class="p">):</span>
+</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a>		<span class="k">return</span> <span class="n">X</span>
 </span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a>
-</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a><span class="c1"># 	if isinstance(X, _np.ndarray):</span>
-</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a><span class="c1"># 		if _np.all([isinstance(_, _uc.UFloat) for _ in X]):</span>
-</span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a><span class="c1"># 			return uarray(X)</span>
-</span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a><span class="c1"># 		else:</span>
-</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a><span class="c1"># 			X = X.astype(float)</span>
+</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a>		<span class="k">if</span> <span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]):</span>
+</span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a>		<span class="k">else</span><span class="p">:</span>
+</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a>			<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 </span><span id="L-632"><a href="#L-632"><span class="linenos">632</span></a>
-</span><span id="L-633"><a href="#L-633"><span class="linenos">633</span></a><span class="c1"># 			if CM is not None:</span>
-</span><span id="L-634"><a href="#L-634"><span class="linenos">634</span></a><span class="c1"># 				if Xse is not None: raise ValueError(&#39;Too much information: Xse is redundant because CM is already specified.&#39;)</span>
+</span><span id="L-633"><a href="#L-633"><span class="linenos">633</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-634"><a href="#L-634"><span class="linenos">634</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
 </span><span id="L-635"><a href="#L-635"><span class="linenos">635</span></a>
-</span><span id="L-636"><a href="#L-636"><span class="linenos">636</span></a><span class="c1"># 			if CM is None:</span>
-</span><span id="L-637"><a href="#L-637"><span class="linenos">637</span></a><span class="c1"># 				if Xse is None:</span>
-</span><span id="L-638"><a href="#L-638"><span class="linenos">638</span></a><span class="c1"># 					Xse = X * 0</span>
+</span><span id="L-636"><a href="#L-636"><span class="linenos">636</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-637"><a href="#L-637"><span class="linenos">637</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-638"><a href="#L-638"><span class="linenos">638</span></a>					<span class="n">Xse</span> <span class="o">=</span> <span class="n">X</span> <span class="o">*</span> <span class="mi">0</span>
 </span><span id="L-639"><a href="#L-639"><span class="linenos">639</span></a>
-</span><span id="L-640"><a href="#L-640"><span class="linenos">640</span></a><span class="c1"># 				CM = _np.diag((*Xse,))**2</span>
+</span><span id="L-640"><a href="#L-640"><span class="linenos">640</span></a>				<span class="n">CM</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Xse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
 </span><span id="L-641"><a href="#L-641"><span class="linenos">641</span></a>
-</span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a><span class="c1"># 			return uarray(_uc.correlated_values(X, CM))</span>
+</span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">CM</span><span class="p">))</span>
 </span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a>
-</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a><span class="c1"># 	if isinstance(X, _uc.UFloat):</span>
-</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a><span class="c1"># 		return uarray([X])</span>
+</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">):</span>
+</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">X</span><span class="p">])</span>
 </span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a>
-</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a><span class="c1"># 	if isinstance(X, (float, int)):</span>
+</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
 </span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a>
-</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a><span class="c1"># 		if CM is not None:</span>
-</span><span id="L-650"><a href="#L-650"><span class="linenos">650</span></a><span class="c1"># 			if Xse is not None: raise ValueError(&#39;Too much information: Xse is redundant because CM is already specified.&#39;)</span>
-</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a><span class="c1"># 			Xse = CM[0,0]**0.5</span>
+</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-650"><a href="#L-650"><span class="linenos">650</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a>			<span class="n">Xse</span> <span class="o">=</span> <span class="n">CM</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mf">0.5</span>
 </span><span id="L-652"><a href="#L-652"><span class="linenos">652</span></a>
-</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a><span class="c1"># 		return uarray([_uc.ufloat(X, Xse)])</span>
+</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">_uc</span><span class="o">.</span><span class="n">ufloat</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Xse</span><span class="p">)])</span>
 </span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a>
 </span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>
-</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a><span class="c1"># def as_pair_of_uarrays(</span>
-</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a><span class="c1"># 	X: (uarray | _np.ndarray | _uc.UFloat | float),</span>
-</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a><span class="c1"># 	Y: (uarray | _np.ndarray | _uc.UFloat | float),</span>
-</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a><span class="c1"># 	Xse: (_np.ndarray | float | None) = None,</span>
-</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a><span class="c1"># 	Yse: (_np.ndarray | float | None) = None,</span>
-</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a><span class="c1"># 	CM: (_np.ndarray | None) = None,</span>
-</span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a><span class="c1"># ) -&gt; uarray:</span>
-</span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a><span class="c1"># 	&quot;&quot;&quot;</span>
-</span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a><span class="c1"># 	Convert the input to a pair of uarrays.</span>
+</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a><span class="k">def</span><span class="w"> </span><span class="nf">as_pair_of_uarrays</span><span class="p">(</span>
+</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a>	<span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a>	<span class="n">Y</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a>	<span class="n">Xse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a>	<span class="n">Yse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a>	<span class="n">CM</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">uarray</span><span class="p">:</span>
+</span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a><span class="sd">	Convert the input to a pair of uarrays.</span>
 </span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a>
-</span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a><span class="c1"># 	**Arguments**</span>
-</span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a><span class="c1"># 	* `X`: x values</span>
-</span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a><span class="c1"># 	* `Y`: y values</span>
-</span><span id="L-669"><a href="#L-669"><span class="linenos">669</span></a><span class="c1"># 	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type</span>
-</span><span id="L-670"><a href="#L-670"><span class="linenos">670</span></a><span class="c1"># 		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
-</span><span id="L-671"><a href="#L-671"><span class="linenos">671</span></a><span class="c1"># 		or if (`Xse`, `Yse`) are specified.</span>
-</span><span id="L-672"><a href="#L-672"><span class="linenos">672</span></a><span class="c1"># 	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type</span>
-</span><span id="L-673"><a href="#L-673"><span class="linenos">673</span></a><span class="c1"># 		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
-</span><span id="L-674"><a href="#L-674"><span class="linenos">674</span></a><span class="c1"># 		or if `CM` is specified.</span>
+</span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a><span class="sd">	**Arguments**</span>
+</span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a><span class="sd">	* `X`: x values</span>
+</span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a><span class="sd">	* `Y`: y values</span>
+</span><span id="L-669"><a href="#L-669"><span class="linenos">669</span></a><span class="sd">	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type</span>
+</span><span id="L-670"><a href="#L-670"><span class="linenos">670</span></a><span class="sd">		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="L-671"><a href="#L-671"><span class="linenos">671</span></a><span class="sd">		or if (`Xse`, `Yse`) are specified.</span>
+</span><span id="L-672"><a href="#L-672"><span class="linenos">672</span></a><span class="sd">	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type</span>
+</span><span id="L-673"><a href="#L-673"><span class="linenos">673</span></a><span class="sd">		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="L-674"><a href="#L-674"><span class="linenos">674</span></a><span class="sd">		or if `CM` is specified.</span>
 </span><span id="L-675"><a href="#L-675"><span class="linenos">675</span></a>
-</span><span id="L-676"><a href="#L-676"><span class="linenos">676</span></a><span class="c1"># 	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.</span>
-</span><span id="L-677"><a href="#L-677"><span class="linenos">677</span></a><span class="c1"># 	&quot;&quot;&quot;</span>
+</span><span id="L-676"><a href="#L-676"><span class="linenos">676</span></a><span class="sd">	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.</span>
+</span><span id="L-677"><a href="#L-677"><span class="linenos">677</span></a><span class="sd">	&quot;&quot;&quot;</span>
 </span><span id="L-678"><a href="#L-678"><span class="linenos">678</span></a>
-</span><span id="L-679"><a href="#L-679"><span class="linenos">679</span></a><span class="c1"># 	if type(X) is not type(Y):</span>
-</span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a><span class="c1"># 		raise TypeError(f&#39;X ({type(X)}) and Y ({type(Y)}) must have the same type.&#39;)</span>
+</span><span id="L-679"><a href="#L-679"><span class="linenos">679</span></a>	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+</span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a>		<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;X (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="si">}</span><span class="s1">) and Y (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="si">}</span><span class="s1">) must have the same type.&#39;</span><span class="p">)</span>
 </span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>
-</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a><span class="c1"># 	if isinstance(X, uarray):</span>
-</span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a><span class="c1"># 		return (X, Y)</span>
+</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">uarray</span><span class="p">):</span>
+</span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a>		<span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
 </span><span id="L-684"><a href="#L-684"><span class="linenos">684</span></a>
-</span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a><span class="c1"># 	if isinstance(X, _np.ndarray):</span>
-</span><span id="L-686"><a href="#L-686"><span class="linenos">686</span></a><span class="c1"># 		if (</span>
-</span><span id="L-687"><a href="#L-687"><span class="linenos">687</span></a><span class="c1"># 			_np.all([isinstance(_, _uc.UFloat) for _ in X])</span>
-</span><span id="L-688"><a href="#L-688"><span class="linenos">688</span></a><span class="c1"># 			and</span>
-</span><span id="L-689"><a href="#L-689"><span class="linenos">689</span></a><span class="c1"># 			_np.all([isinstance(_, _uc.UFloat) for _ in Y])</span>
-</span><span id="L-690"><a href="#L-690"><span class="linenos">690</span></a><span class="c1"># 		):</span>
-</span><span id="L-691"><a href="#L-691"><span class="linenos">691</span></a><span class="c1"># 			return uarray(X), uarray(Y)</span>
-</span><span id="L-692"><a href="#L-692"><span class="linenos">692</span></a><span class="c1"># 		else:</span>
-</span><span id="L-693"><a href="#L-693"><span class="linenos">693</span></a><span class="c1"># 			X = X.astype(float)</span>
-</span><span id="L-694"><a href="#L-694"><span class="linenos">694</span></a><span class="c1"># 			Y = Y.astype(float)</span>
+</span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="L-686"><a href="#L-686"><span class="linenos">686</span></a>		<span class="k">if</span> <span class="p">(</span>
+</span><span id="L-687"><a href="#L-687"><span class="linenos">687</span></a>			<span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span>
+</span><span id="L-688"><a href="#L-688"><span class="linenos">688</span></a>			<span class="ow">and</span>
+</span><span id="L-689"><a href="#L-689"><span class="linenos">689</span></a>			<span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">Y</span><span class="p">])</span>
+</span><span id="L-690"><a href="#L-690"><span class="linenos">690</span></a>		<span class="p">):</span>
+</span><span id="L-691"><a href="#L-691"><span class="linenos">691</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">uarray</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+</span><span id="L-692"><a href="#L-692"><span class="linenos">692</span></a>		<span class="k">else</span><span class="p">:</span>
+</span><span id="L-693"><a href="#L-693"><span class="linenos">693</span></a>			<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</span><span id="L-694"><a href="#L-694"><span class="linenos">694</span></a>			<span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 </span><span id="L-695"><a href="#L-695"><span class="linenos">695</span></a>
-</span><span id="L-696"><a href="#L-696"><span class="linenos">696</span></a><span class="c1"># 			if CM is not None:</span>
-</span><span id="L-697"><a href="#L-697"><span class="linenos">697</span></a><span class="c1"># 				if Xse is not None: raise ValueError(&#39;Too much information: Xse is redundant because CM is already specified.&#39;)</span>
-</span><span id="L-698"><a href="#L-698"><span class="linenos">698</span></a><span class="c1"># 				if Yse is not None: raise ValueError(&#39;Too much information: Yse is redundant because CM is already specified.&#39;)</span>
+</span><span id="L-696"><a href="#L-696"><span class="linenos">696</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-697"><a href="#L-697"><span class="linenos">697</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="L-698"><a href="#L-698"><span class="linenos">698</span></a>				<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Yse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
 </span><span id="L-699"><a href="#L-699"><span class="linenos">699</span></a>
-</span><span id="L-700"><a href="#L-700"><span class="linenos">700</span></a><span class="c1"># 			if CM is None:</span>
-</span><span id="L-701"><a href="#L-701"><span class="linenos">701</span></a><span class="c1"># 				if Xse is None:</span>
-</span><span id="L-702"><a href="#L-702"><span class="linenos">702</span></a><span class="c1"># 					Xse = X * 0</span>
-</span><span id="L-703"><a href="#L-703"><span class="linenos">703</span></a><span class="c1"># 				if Yse is None:</span>
-</span><span id="L-704"><a href="#L-704"><span class="linenos">704</span></a><span class="c1"># 					Yse = Y * 0</span>
+</span><span id="L-700"><a href="#L-700"><span class="linenos">700</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-701"><a href="#L-701"><span class="linenos">701</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-702"><a href="#L-702"><span class="linenos">702</span></a>					<span class="n">Xse</span> <span class="o">=</span> <span class="n">X</span> <span class="o">*</span> <span class="mi">0</span>
+</span><span id="L-703"><a href="#L-703"><span class="linenos">703</span></a>				<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-704"><a href="#L-704"><span class="linenos">704</span></a>					<span class="n">Yse</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">*</span> <span class="mi">0</span>
 </span><span id="L-705"><a href="#L-705"><span class="linenos">705</span></a>
-</span><span id="L-706"><a href="#L-706"><span class="linenos">706</span></a><span class="c1"># 				CMx = _np.diag((*Xse,))**2</span>
-</span><span id="L-707"><a href="#L-707"><span class="linenos">707</span></a><span class="c1"># 				CMy = _np.diag((*Yse,))**2</span>
-</span><span id="L-708"><a href="#L-708"><span class="linenos">708</span></a><span class="c1"># 				return uarray(_uc.correlated_values(X, CMx)), uarray(_uc.correlated_values(Y, CMy))</span>
+</span><span id="L-706"><a href="#L-706"><span class="linenos">706</span></a>				<span class="n">CMx</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Xse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="L-707"><a href="#L-707"><span class="linenos">707</span></a>				<span class="n">CMy</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Yse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="L-708"><a href="#L-708"><span class="linenos">708</span></a>				<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">CMx</span><span class="p">)),</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">CMy</span><span class="p">))</span>
 </span><span id="L-709"><a href="#L-709"><span class="linenos">709</span></a>
-</span><span id="L-710"><a href="#L-710"><span class="linenos">710</span></a><span class="c1"># 			else:</span>
-</span><span id="L-711"><a href="#L-711"><span class="linenos">711</span></a><span class="c1"># 				XY = uarray(_uc.correlated_values([*X, *Y], CM))</span>
-</span><span id="L-712"><a href="#L-712"><span class="linenos">712</span></a><span class="c1"># 				return XY[:X.size], XY[X.size:]</span>
+</span><span id="L-710"><a href="#L-710"><span class="linenos">710</span></a>			<span class="k">else</span><span class="p">:</span>
+</span><span id="L-711"><a href="#L-711"><span class="linenos">711</span></a>				<span class="n">XY</span> <span class="o">=</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">([</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">Y</span><span class="p">],</span> <span class="n">CM</span><span class="p">))</span>
+</span><span id="L-712"><a href="#L-712"><span class="linenos">712</span></a>				<span class="k">return</span> <span class="n">XY</span><span class="p">[:</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">:]</span>
 </span><span id="L-713"><a href="#L-713"><span class="linenos">713</span></a>
-</span><span id="L-714"><a href="#L-714"><span class="linenos">714</span></a><span class="c1"># 	if isinstance(X, _uc.UFloat):</span>
-</span><span id="L-715"><a href="#L-715"><span class="linenos">715</span></a><span class="c1"># 		return uarray([X]), uarray([Y])</span>
+</span><span id="L-714"><a href="#L-714"><span class="linenos">714</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">):</span>
+</span><span id="L-715"><a href="#L-715"><span class="linenos">715</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">X</span><span class="p">]),</span> <span class="n">uarray</span><span class="p">([</span><span class="n">Y</span><span class="p">])</span>
 </span><span id="L-716"><a href="#L-716"><span class="linenos">716</span></a>
-</span><span id="L-717"><a href="#L-717"><span class="linenos">717</span></a><span class="c1"># 	if isinstance(X, (float, int)):</span>
+</span><span id="L-717"><a href="#L-717"><span class="linenos">717</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
 </span><span id="L-718"><a href="#L-718"><span class="linenos">718</span></a>
-</span><span id="L-719"><a href="#L-719"><span class="linenos">719</span></a><span class="c1"># 		if CM is not None:</span>
-</span><span id="L-720"><a href="#L-720"><span class="linenos">720</span></a><span class="c1"># 			if Xse is not None: raise ValueError(&#39;Too much information: Xse is redundant because CM is already specified.&#39;)</span>
-</span><span id="L-721"><a href="#L-721"><span class="linenos">721</span></a><span class="c1"># 			if Yse is not None: raise ValueError(&#39;Too much information: Yse is redundant because CM is already specified.&#39;)</span>
+</span><span id="L-719"><a href="#L-719"><span class="linenos">719</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-720"><a href="#L-720"><span class="linenos">720</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="L-721"><a href="#L-721"><span class="linenos">721</span></a>			<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Yse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
 </span><span id="L-722"><a href="#L-722"><span class="linenos">722</span></a>
-</span><span id="L-723"><a href="#L-723"><span class="linenos">723</span></a><span class="c1"># 		if CM is None:</span>
-</span><span id="L-724"><a href="#L-724"><span class="linenos">724</span></a><span class="c1"># 			if Xse is None: raise ValueError(&#39;Not enough information: specify either CM or Xse.&#39;)</span>
-</span><span id="L-725"><a href="#L-725"><span class="linenos">725</span></a><span class="c1"># 			if Yse is None: raise ValueError(&#39;Not enough information: specify either CM or Yse.&#39;)</span>
+</span><span id="L-723"><a href="#L-723"><span class="linenos">723</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-724"><a href="#L-724"><span class="linenos">724</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough information: specify either CM or Xse.&#39;</span><span class="p">)</span>
+</span><span id="L-725"><a href="#L-725"><span class="linenos">725</span></a>			<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough information: specify either CM or Yse.&#39;</span><span class="p">)</span>
 </span><span id="L-726"><a href="#L-726"><span class="linenos">726</span></a>
-</span><span id="L-727"><a href="#L-727"><span class="linenos">727</span></a><span class="c1"># 			CM = _np.diag([Xse, Yse])**2</span>
+</span><span id="L-727"><a href="#L-727"><span class="linenos">727</span></a>			<span class="n">CM</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">Xse</span><span class="p">,</span> <span class="n">Yse</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
 </span><span id="L-728"><a href="#L-728"><span class="linenos">728</span></a>
-</span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a><span class="c1"># 		XY = uarray(_uc.correlated_values([X, Y], CM))</span>
-</span><span id="L-730"><a href="#L-730"><span class="linenos">730</span></a><span class="c1"># 		return XY[:1], XY[1:]</span>
+</span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a>		<span class="n">XY</span> <span class="o">=</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">],</span> <span class="n">CM</span><span class="p">))</span>
+</span><span id="L-730"><a href="#L-730"><span class="linenos">730</span></a>		<span class="k">return</span> <span class="n">XY</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 </span></pre></div>
 
 
@@ -2372,6 +2378,202 @@ when deciding whether a matrix is equal to the identity matrix or to the zero ma
 
 
                             </div>
+                </section>
+                <section id="as_uarray">
+                            <input id="as_uarray-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">as_uarray</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">X</span><span class="p">:</span> <span class="n"><a href="#uarray">uarray</a></span> <span class="o">|</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">AffineScalarFunc</span> <span class="o">|</span> <span class="nb">float</span>,</span><span class="param">	<span class="n">Xse</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">CM</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#uarray">uarray</a></span>:</span></span>
+
+                <label class="view-source-button" for="as_uarray-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#as_uarray"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="as_uarray-603"><a href="#as_uarray-603"><span class="linenos">603</span></a><span class="k">def</span><span class="w"> </span><span class="nf">as_uarray</span><span class="p">(</span>
+</span><span id="as_uarray-604"><a href="#as_uarray-604"><span class="linenos">604</span></a>	<span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="as_uarray-605"><a href="#as_uarray-605"><span class="linenos">605</span></a>	<span class="n">Xse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="as_uarray-606"><a href="#as_uarray-606"><span class="linenos">606</span></a>	<span class="n">CM</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="as_uarray-607"><a href="#as_uarray-607"><span class="linenos">607</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">uarray</span><span class="p">:</span>
+</span><span id="as_uarray-608"><a href="#as_uarray-608"><span class="linenos">608</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="as_uarray-609"><a href="#as_uarray-609"><span class="linenos">609</span></a><span class="sd">	Convert the input to an uarray. If the input is a single float or</span>
+</span><span id="as_uarray-610"><a href="#as_uarray-610"><span class="linenos">610</span></a><span class="sd">	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),</span>
+</span><span id="as_uarray-611"><a href="#as_uarray-611"><span class="linenos">611</span></a><span class="sd">	yields an uarray of size 1.</span>
+</span><span id="as_uarray-612"><a href="#as_uarray-612"><span class="linenos">612</span></a>
+</span><span id="as_uarray-613"><a href="#as_uarray-613"><span class="linenos">613</span></a><span class="sd">	**Arguments**</span>
+</span><span id="as_uarray-614"><a href="#as_uarray-614"><span class="linenos">614</span></a><span class="sd">	* `X`: nominal value(s)</span>
+</span><span id="as_uarray-615"><a href="#as_uarray-615"><span class="linenos">615</span></a><span class="sd">	* `CM`: covariance matrix of X; not needed if elements of X are of type</span>
+</span><span id="as_uarray-616"><a href="#as_uarray-616"><span class="linenos">616</span></a><span class="sd">		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="as_uarray-617"><a href="#as_uarray-617"><span class="linenos">617</span></a><span class="sd">		or if `Xse` is specified.</span>
+</span><span id="as_uarray-618"><a href="#as_uarray-618"><span class="linenos">618</span></a><span class="sd">	* `Xse`,: SE of X; not needed if elements of X are of type</span>
+</span><span id="as_uarray-619"><a href="#as_uarray-619"><span class="linenos">619</span></a><span class="sd">		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="as_uarray-620"><a href="#as_uarray-620"><span class="linenos">620</span></a><span class="sd">		or if `CM` is specified.</span>
+</span><span id="as_uarray-621"><a href="#as_uarray-621"><span class="linenos">621</span></a>
+</span><span id="as_uarray-622"><a href="#as_uarray-622"><span class="linenos">622</span></a><span class="sd">	If neither `CM` nor `Xse` are specified, assume SE = 0.</span>
+</span><span id="as_uarray-623"><a href="#as_uarray-623"><span class="linenos">623</span></a><span class="sd">	&quot;&quot;&quot;</span>
+</span><span id="as_uarray-624"><a href="#as_uarray-624"><span class="linenos">624</span></a>
+</span><span id="as_uarray-625"><a href="#as_uarray-625"><span class="linenos">625</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">uarray</span><span class="p">):</span>
+</span><span id="as_uarray-626"><a href="#as_uarray-626"><span class="linenos">626</span></a>		<span class="k">return</span> <span class="n">X</span>
+</span><span id="as_uarray-627"><a href="#as_uarray-627"><span class="linenos">627</span></a>
+</span><span id="as_uarray-628"><a href="#as_uarray-628"><span class="linenos">628</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="as_uarray-629"><a href="#as_uarray-629"><span class="linenos">629</span></a>		<span class="k">if</span> <span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]):</span>
+</span><span id="as_uarray-630"><a href="#as_uarray-630"><span class="linenos">630</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</span><span id="as_uarray-631"><a href="#as_uarray-631"><span class="linenos">631</span></a>		<span class="k">else</span><span class="p">:</span>
+</span><span id="as_uarray-632"><a href="#as_uarray-632"><span class="linenos">632</span></a>			<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</span><span id="as_uarray-633"><a href="#as_uarray-633"><span class="linenos">633</span></a>
+</span><span id="as_uarray-634"><a href="#as_uarray-634"><span class="linenos">634</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_uarray-635"><a href="#as_uarray-635"><span class="linenos">635</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_uarray-636"><a href="#as_uarray-636"><span class="linenos">636</span></a>
+</span><span id="as_uarray-637"><a href="#as_uarray-637"><span class="linenos">637</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_uarray-638"><a href="#as_uarray-638"><span class="linenos">638</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_uarray-639"><a href="#as_uarray-639"><span class="linenos">639</span></a>					<span class="n">Xse</span> <span class="o">=</span> <span class="n">X</span> <span class="o">*</span> <span class="mi">0</span>
+</span><span id="as_uarray-640"><a href="#as_uarray-640"><span class="linenos">640</span></a>
+</span><span id="as_uarray-641"><a href="#as_uarray-641"><span class="linenos">641</span></a>				<span class="n">CM</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Xse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="as_uarray-642"><a href="#as_uarray-642"><span class="linenos">642</span></a>
+</span><span id="as_uarray-643"><a href="#as_uarray-643"><span class="linenos">643</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">CM</span><span class="p">))</span>
+</span><span id="as_uarray-644"><a href="#as_uarray-644"><span class="linenos">644</span></a>
+</span><span id="as_uarray-645"><a href="#as_uarray-645"><span class="linenos">645</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">):</span>
+</span><span id="as_uarray-646"><a href="#as_uarray-646"><span class="linenos">646</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">X</span><span class="p">])</span>
+</span><span id="as_uarray-647"><a href="#as_uarray-647"><span class="linenos">647</span></a>
+</span><span id="as_uarray-648"><a href="#as_uarray-648"><span class="linenos">648</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+</span><span id="as_uarray-649"><a href="#as_uarray-649"><span class="linenos">649</span></a>
+</span><span id="as_uarray-650"><a href="#as_uarray-650"><span class="linenos">650</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_uarray-651"><a href="#as_uarray-651"><span class="linenos">651</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_uarray-652"><a href="#as_uarray-652"><span class="linenos">652</span></a>			<span class="n">Xse</span> <span class="o">=</span> <span class="n">CM</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mf">0.5</span>
+</span><span id="as_uarray-653"><a href="#as_uarray-653"><span class="linenos">653</span></a>
+</span><span id="as_uarray-654"><a href="#as_uarray-654"><span class="linenos">654</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">_uc</span><span class="o">.</span><span class="n">ufloat</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Xse</span><span class="p">)])</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Convert the input to an uarray. If the input is a single float or
+<a href="https://pythonhosted.org/uncertainties/tech_guide.html">UFloat</a>,
+yields an uarray of size 1.</p>
+
+<p><strong>Arguments</strong></p>
+
+<ul>
+<li><code>X</code>: nominal value(s)</li>
+<li><code>CM</code>: covariance matrix of X; not needed if elements of X are of type
+<a href="https://pythonhosted.org/uncertainties/tech_guide.html"><code>UFloat</code></a>
+or if <code>Xse</code> is specified.</li>
+<li><code>Xse</code>,: SE of X; not needed if elements of X are of type
+<a href="https://pythonhosted.org/uncertainties/tech_guide.html"><code>UFloat</code></a>
+or if <code>CM</code> is specified.</li>
+</ul>
+
+<p>If neither <code>CM</code> nor <code>Xse</code> are specified, assume SE = 0.</p>
+</div>
+
+
+                </section>
+                <section id="as_pair_of_uarrays">
+                            <input id="as_pair_of_uarrays-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">as_pair_of_uarrays</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">X</span><span class="p">:</span> <span class="n"><a href="#uarray">uarray</a></span> <span class="o">|</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">AffineScalarFunc</span> <span class="o">|</span> <span class="nb">float</span>,</span><span class="param">	<span class="n">Y</span><span class="p">:</span> <span class="n"><a href="#uarray">uarray</a></span> <span class="o">|</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">AffineScalarFunc</span> <span class="o">|</span> <span class="nb">float</span>,</span><span class="param">	<span class="n">Xse</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">Yse</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">CM</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#uarray">uarray</a></span>:</span></span>
+
+                <label class="view-source-button" for="as_pair_of_uarrays-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#as_pair_of_uarrays"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="as_pair_of_uarrays-657"><a href="#as_pair_of_uarrays-657"><span class="linenos">657</span></a><span class="k">def</span><span class="w"> </span><span class="nf">as_pair_of_uarrays</span><span class="p">(</span>
+</span><span id="as_pair_of_uarrays-658"><a href="#as_pair_of_uarrays-658"><span class="linenos">658</span></a>	<span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="as_pair_of_uarrays-659"><a href="#as_pair_of_uarrays-659"><span class="linenos">659</span></a>	<span class="n">Y</span><span class="p">:</span> <span class="p">(</span><span class="n">uarray</span> <span class="o">|</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span> <span class="o">|</span> <span class="nb">float</span><span class="p">),</span>
+</span><span id="as_pair_of_uarrays-660"><a href="#as_pair_of_uarrays-660"><span class="linenos">660</span></a>	<span class="n">Xse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="as_pair_of_uarrays-661"><a href="#as_pair_of_uarrays-661"><span class="linenos">661</span></a>	<span class="n">Yse</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="as_pair_of_uarrays-662"><a href="#as_pair_of_uarrays-662"><span class="linenos">662</span></a>	<span class="n">CM</span><span class="p">:</span> <span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="as_pair_of_uarrays-663"><a href="#as_pair_of_uarrays-663"><span class="linenos">663</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">uarray</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-664"><a href="#as_pair_of_uarrays-664"><span class="linenos">664</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="as_pair_of_uarrays-665"><a href="#as_pair_of_uarrays-665"><span class="linenos">665</span></a><span class="sd">	Convert the input to a pair of uarrays.</span>
+</span><span id="as_pair_of_uarrays-666"><a href="#as_pair_of_uarrays-666"><span class="linenos">666</span></a>
+</span><span id="as_pair_of_uarrays-667"><a href="#as_pair_of_uarrays-667"><span class="linenos">667</span></a><span class="sd">	**Arguments**</span>
+</span><span id="as_pair_of_uarrays-668"><a href="#as_pair_of_uarrays-668"><span class="linenos">668</span></a><span class="sd">	* `X`: x values</span>
+</span><span id="as_pair_of_uarrays-669"><a href="#as_pair_of_uarrays-669"><span class="linenos">669</span></a><span class="sd">	* `Y`: y values</span>
+</span><span id="as_pair_of_uarrays-670"><a href="#as_pair_of_uarrays-670"><span class="linenos">670</span></a><span class="sd">	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type</span>
+</span><span id="as_pair_of_uarrays-671"><a href="#as_pair_of_uarrays-671"><span class="linenos">671</span></a><span class="sd">		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="as_pair_of_uarrays-672"><a href="#as_pair_of_uarrays-672"><span class="linenos">672</span></a><span class="sd">		or if (`Xse`, `Yse`) are specified.</span>
+</span><span id="as_pair_of_uarrays-673"><a href="#as_pair_of_uarrays-673"><span class="linenos">673</span></a><span class="sd">	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type</span>
+</span><span id="as_pair_of_uarrays-674"><a href="#as_pair_of_uarrays-674"><span class="linenos">674</span></a><span class="sd">		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)</span>
+</span><span id="as_pair_of_uarrays-675"><a href="#as_pair_of_uarrays-675"><span class="linenos">675</span></a><span class="sd">		or if `CM` is specified.</span>
+</span><span id="as_pair_of_uarrays-676"><a href="#as_pair_of_uarrays-676"><span class="linenos">676</span></a>
+</span><span id="as_pair_of_uarrays-677"><a href="#as_pair_of_uarrays-677"><span class="linenos">677</span></a><span class="sd">	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.</span>
+</span><span id="as_pair_of_uarrays-678"><a href="#as_pair_of_uarrays-678"><span class="linenos">678</span></a><span class="sd">	&quot;&quot;&quot;</span>
+</span><span id="as_pair_of_uarrays-679"><a href="#as_pair_of_uarrays-679"><span class="linenos">679</span></a>
+</span><span id="as_pair_of_uarrays-680"><a href="#as_pair_of_uarrays-680"><span class="linenos">680</span></a>	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+</span><span id="as_pair_of_uarrays-681"><a href="#as_pair_of_uarrays-681"><span class="linenos">681</span></a>		<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;X (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="si">}</span><span class="s1">) and Y (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="si">}</span><span class="s1">) must have the same type.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-682"><a href="#as_pair_of_uarrays-682"><span class="linenos">682</span></a>
+</span><span id="as_pair_of_uarrays-683"><a href="#as_pair_of_uarrays-683"><span class="linenos">683</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">uarray</span><span class="p">):</span>
+</span><span id="as_pair_of_uarrays-684"><a href="#as_pair_of_uarrays-684"><span class="linenos">684</span></a>		<span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-685"><a href="#as_pair_of_uarrays-685"><span class="linenos">685</span></a>
+</span><span id="as_pair_of_uarrays-686"><a href="#as_pair_of_uarrays-686"><span class="linenos">686</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="as_pair_of_uarrays-687"><a href="#as_pair_of_uarrays-687"><span class="linenos">687</span></a>		<span class="k">if</span> <span class="p">(</span>
+</span><span id="as_pair_of_uarrays-688"><a href="#as_pair_of_uarrays-688"><span class="linenos">688</span></a>			<span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span>
+</span><span id="as_pair_of_uarrays-689"><a href="#as_pair_of_uarrays-689"><span class="linenos">689</span></a>			<span class="ow">and</span>
+</span><span id="as_pair_of_uarrays-690"><a href="#as_pair_of_uarrays-690"><span class="linenos">690</span></a>			<span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">Y</span><span class="p">])</span>
+</span><span id="as_pair_of_uarrays-691"><a href="#as_pair_of_uarrays-691"><span class="linenos">691</span></a>		<span class="p">):</span>
+</span><span id="as_pair_of_uarrays-692"><a href="#as_pair_of_uarrays-692"><span class="linenos">692</span></a>			<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">uarray</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-693"><a href="#as_pair_of_uarrays-693"><span class="linenos">693</span></a>		<span class="k">else</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-694"><a href="#as_pair_of_uarrays-694"><span class="linenos">694</span></a>			<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-695"><a href="#as_pair_of_uarrays-695"><span class="linenos">695</span></a>			<span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-696"><a href="#as_pair_of_uarrays-696"><span class="linenos">696</span></a>
+</span><span id="as_pair_of_uarrays-697"><a href="#as_pair_of_uarrays-697"><span class="linenos">697</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-698"><a href="#as_pair_of_uarrays-698"><span class="linenos">698</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-699"><a href="#as_pair_of_uarrays-699"><span class="linenos">699</span></a>				<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Yse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-700"><a href="#as_pair_of_uarrays-700"><span class="linenos">700</span></a>
+</span><span id="as_pair_of_uarrays-701"><a href="#as_pair_of_uarrays-701"><span class="linenos">701</span></a>			<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-702"><a href="#as_pair_of_uarrays-702"><span class="linenos">702</span></a>				<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-703"><a href="#as_pair_of_uarrays-703"><span class="linenos">703</span></a>					<span class="n">Xse</span> <span class="o">=</span> <span class="n">X</span> <span class="o">*</span> <span class="mi">0</span>
+</span><span id="as_pair_of_uarrays-704"><a href="#as_pair_of_uarrays-704"><span class="linenos">704</span></a>				<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-705"><a href="#as_pair_of_uarrays-705"><span class="linenos">705</span></a>					<span class="n">Yse</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">*</span> <span class="mi">0</span>
+</span><span id="as_pair_of_uarrays-706"><a href="#as_pair_of_uarrays-706"><span class="linenos">706</span></a>
+</span><span id="as_pair_of_uarrays-707"><a href="#as_pair_of_uarrays-707"><span class="linenos">707</span></a>				<span class="n">CMx</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Xse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="as_pair_of_uarrays-708"><a href="#as_pair_of_uarrays-708"><span class="linenos">708</span></a>				<span class="n">CMy</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">((</span><span class="o">*</span><span class="n">Yse</span><span class="p">,))</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="as_pair_of_uarrays-709"><a href="#as_pair_of_uarrays-709"><span class="linenos">709</span></a>				<span class="k">return</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">CMx</span><span class="p">)),</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">CMy</span><span class="p">))</span>
+</span><span id="as_pair_of_uarrays-710"><a href="#as_pair_of_uarrays-710"><span class="linenos">710</span></a>
+</span><span id="as_pair_of_uarrays-711"><a href="#as_pair_of_uarrays-711"><span class="linenos">711</span></a>			<span class="k">else</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-712"><a href="#as_pair_of_uarrays-712"><span class="linenos">712</span></a>				<span class="n">XY</span> <span class="o">=</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">([</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">Y</span><span class="p">],</span> <span class="n">CM</span><span class="p">))</span>
+</span><span id="as_pair_of_uarrays-713"><a href="#as_pair_of_uarrays-713"><span class="linenos">713</span></a>				<span class="k">return</span> <span class="n">XY</span><span class="p">[:</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">:]</span>
+</span><span id="as_pair_of_uarrays-714"><a href="#as_pair_of_uarrays-714"><span class="linenos">714</span></a>
+</span><span id="as_pair_of_uarrays-715"><a href="#as_pair_of_uarrays-715"><span class="linenos">715</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_uc</span><span class="o">.</span><span class="n">UFloat</span><span class="p">):</span>
+</span><span id="as_pair_of_uarrays-716"><a href="#as_pair_of_uarrays-716"><span class="linenos">716</span></a>		<span class="k">return</span> <span class="n">uarray</span><span class="p">([</span><span class="n">X</span><span class="p">]),</span> <span class="n">uarray</span><span class="p">([</span><span class="n">Y</span><span class="p">])</span>
+</span><span id="as_pair_of_uarrays-717"><a href="#as_pair_of_uarrays-717"><span class="linenos">717</span></a>
+</span><span id="as_pair_of_uarrays-718"><a href="#as_pair_of_uarrays-718"><span class="linenos">718</span></a>	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+</span><span id="as_pair_of_uarrays-719"><a href="#as_pair_of_uarrays-719"><span class="linenos">719</span></a>
+</span><span id="as_pair_of_uarrays-720"><a href="#as_pair_of_uarrays-720"><span class="linenos">720</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-721"><a href="#as_pair_of_uarrays-721"><span class="linenos">721</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Xse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-722"><a href="#as_pair_of_uarrays-722"><span class="linenos">722</span></a>			<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Too much information: Yse is redundant because CM is already specified.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-723"><a href="#as_pair_of_uarrays-723"><span class="linenos">723</span></a>
+</span><span id="as_pair_of_uarrays-724"><a href="#as_pair_of_uarrays-724"><span class="linenos">724</span></a>		<span class="k">if</span> <span class="n">CM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="as_pair_of_uarrays-725"><a href="#as_pair_of_uarrays-725"><span class="linenos">725</span></a>			<span class="k">if</span> <span class="n">Xse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough information: specify either CM or Xse.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-726"><a href="#as_pair_of_uarrays-726"><span class="linenos">726</span></a>			<span class="k">if</span> <span class="n">Yse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough information: specify either CM or Yse.&#39;</span><span class="p">)</span>
+</span><span id="as_pair_of_uarrays-727"><a href="#as_pair_of_uarrays-727"><span class="linenos">727</span></a>
+</span><span id="as_pair_of_uarrays-728"><a href="#as_pair_of_uarrays-728"><span class="linenos">728</span></a>			<span class="n">CM</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">Xse</span><span class="p">,</span> <span class="n">Yse</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="as_pair_of_uarrays-729"><a href="#as_pair_of_uarrays-729"><span class="linenos">729</span></a>
+</span><span id="as_pair_of_uarrays-730"><a href="#as_pair_of_uarrays-730"><span class="linenos">730</span></a>		<span class="n">XY</span> <span class="o">=</span> <span class="n">uarray</span><span class="p">(</span><span class="n">_uc</span><span class="o">.</span><span class="n">correlated_values</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">],</span> <span class="n">CM</span><span class="p">))</span>
+</span><span id="as_pair_of_uarrays-731"><a href="#as_pair_of_uarrays-731"><span class="linenos">731</span></a>		<span class="k">return</span> <span class="n">XY</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Convert the input to a pair of uarrays.</p>
+
+<p><strong>Arguments</strong></p>
+
+<ul>
+<li><code>X</code>: x values</li>
+<li><code>Y</code>: y values</li>
+<li><code>CM</code>: covariance matrix of <code>(*X, *Y)</code>; not needed if elements of X and Y are of type
+<a href="https://pythonhosted.org/uncertainties/tech_guide.html"><code>uncertainties.UFloat</code></a>
+or if (<code>Xse</code>, <code>Yse</code>) are specified.</li>
+<li><code>Xse</code>, <code>Yse</code>: SE of X and Y; not needed if elements of X and Y are of type
+<a href="https://pythonhosted.org/uncertainties/tech_guide.html"><code>uncertainties.UFloat</code></a>
+or if <code>CM</code> is specified.</li>
+</ul>
+
+<p>If neither <code>CM</code>, <code>Xse</code> nor <code>Yse</code> are specified, assume SE = 0.</p>
+</div>
+
+
                 </section>
     </main>
 </body>
