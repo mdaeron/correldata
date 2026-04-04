@@ -65,6 +65,6 @@ Sample, Tacid,   D47, SE_D47, correl_D47,     ,     ,   D48, SE_D48, correl_D48,
    BAZ,    90, 0.247,  0.005,       0.50, 0.50, 1.00, 0.147,   0.02,       0.25, 0.25, 1.00,          -0.00,  0.00,  0.50
 ```
 
-## Documentation / API
+## Documentation
 
 [https://mdaeron.github.io/correldata](https://mdaeron.github.io/correldata)
