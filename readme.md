@@ -10,24 +10,24 @@ as defined in the [uncertainties](https://pypi.org/project/uncertainties) librar
 
 When reading data from a csv file, column names are interpreted in the following way:
 
-	Column names are interpreted in the following way:
-	* In most cases, each columns is converted to a dict value, with the corresponding
-	dict key being the column's label.
-	* Columns whose label starts with `SE` are interpreted as specifying the standard
-	error for the latest preceding data column.
-	* Columns whose label starts with `correl` are interpreted as specifying the
-	correlation matrix for the latest preceding data column. In that case, column labels
-	are ignored for the rest of the columns belonging to this matrix.
-	* Columns whose label starts with `covar` are interpreted as specifying the
-	covariance matrix for the latest preceding data column. In that case, column labels
-	are ignored for the rest of the columns belonging to this matrix.
-	* `SE`, `correl`, and `covar` may be specified for any arbitrary variable other than
-	the latest preceding data column, by adding an underscore followed by the variable's
-	label (ex: `SE_foo`, `correl_bar`, `covar_baz`).
-	* `correl`, and `covar` may also be specified for any pair of variable, by adding an
-	underscore followed by the two variable labels, joined by a second underscore
-	(ex: `correl_foo_bar`, `covar_X_Y`). The elements of the first and second variables
-	correspond, respectively, to the lines and columns of this matrix.
+Column names are interpreted in the following way:
+* In most cases, each columns is converted to a dict value, with the corresponding
+dict key being the column's label.
+* Columns whose label starts with `SE` are interpreted as specifying the standard
+error for the latest preceding data column.
+* Columns whose label starts with `correl` are interpreted as specifying the
+correlation matrix for the latest preceding data column. In that case, column labels
+are ignored for the rest of the columns belonging to this matrix.
+* Columns whose label starts with `covar` are interpreted as specifying the
+covariance matrix for the latest preceding data column. In that case, column labels
+are ignored for the rest of the columns belonging to this matrix.
+* `SE`, `correl`, and `covar` may be specified for any arbitrary variable other than
+the latest preceding data column, by adding an underscore followed by the variable's
+label (ex: `SE_foo`, `correl_bar`, `covar_baz`).
+* `correl`, and `covar` may also be specified for any pair of variable, by adding an
+underscore followed by the two variable labels, joined by a second underscore
+(ex: `correl_foo_bar`, `covar_X_Y`). The elements of the first and second variables
+correspond, respectively, to the lines and columns of this matrix.
 
 ## Example
 
