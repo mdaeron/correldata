@@ -1,20 +1,17 @@
 [project]
 name = "correldata"
-version = "2.0.0"
+version = "2.0.0b1"
 description = "Dataframe-like tables of data with correlated uncertainties"
 readme = "readme.md"
+license = { "text" = "MIT License: https://opensource.org/licenses/MIT" }
 authors = [
-    { name = "mdaeron", email = "mathieu@daeron.fr" }
+    { name = "Mathieu Daëron", email = "mathieu@daeron.fr" }
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "numpy>=2.1.1",
     "uncertainties>=3.2.3",
 ]
 
 [build-system]
-requires = [
-	"flit_core >=3.2,<4",
-    "flit>=3.9.0",
-	]
-build-backend = "flit_core.buildapi"
+requires = ["uv_build>=0.1"]
+build-backend = "uv_build"
