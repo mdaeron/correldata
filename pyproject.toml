@@ -12,6 +12,22 @@ dependencies = [
     "uncertainties>=3.2.3",
 ]
 
+[project.urls]
+Home = "https://github.com/mdaeron/correldata"
+Documentation = "https://mdaeron.github.io/correldata"
+
 [build-system]
 requires = ["uv_build>=0.1"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+	"pdoc>=16.0.0",
+	"pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+	"ignore::pytest.PytestCollectionWarning",
+	"ignore::FutureWarning",
+]

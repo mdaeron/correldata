@@ -1,7 +1,10 @@
-default: version
+default: version doc
 
 version:
-	uv run update-metadata.py
+	uv run build-metadata.py
+
+doc:
+	cd src; uv run ../build-doc.py
 
 build:
 	rm -rf dist
