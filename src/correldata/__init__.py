@@ -15,6 +15,63 @@ from uncertainties.unumpy import nominal_values as nv
 
 from ._metadata import *
 
+
+nv = nv
+"Alias for [`uncertainties.unumpy.nominal_values()`](https://pythonhosted.org/uncertainties/numpy_guide.html#uncertainties-and-nominal-values)"
+
+
+def smart_type(s: str) -> (int | float | str):
+	'''
+	Tries to convert string `s` to an `int`, or to an `float` if that fails.
+	If both fail, return the original string unchanged.
+	'''
+	if s.isdigit(): return int(s)
+	try: return float(s)
+	except: pass
+	return s
+
+
+def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
+	"Test whether 2-D array `M` is symmetric and positive semidefinite."
+	ev = _np.linalg.eigvals(M)
+	return (
+		_np.allclose(M, M.T) # M is symmetric
+		and _np.all(
+			(ev > 0) | _np.isclose(ev, 0)
+		) # all eignevalues are either real and strictly positive or close to zero
+	)
+
+
+def f2s(
+	x: Any,
+	f: (str | Callable | dict),
+	k: Hashable = None,
+	fb: (str | Callable) = 'z.6g',
+) -> str:
+	'''
+	Format `x` according to format `f`
+
+	* If `f` is a string, return `f'{x:{f}}'`
+	* If `f` is a callable, return `f(x)`
+	* If `f` is a dict and optional argument `k` is a hashable,
+	  return f2s(x, f[k]), otherwise return f2s(x, fb)
+	'''
+	if isinstance (x, str):
+		return x
+	if isinstance (f, str):
+		return f'{x:{f}}'
+	if isinstance (f, Callable):
+		return f(x)
+	if isinstance (f, dict):
+		if k in f:
+			return f2s(x, f[k])
+		if isinstance (fb, str):
+			return f'{x:{fb}}'
+		if isinstance (fb, Callable):
+			return fb(x)
+	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a callable nor a dict.')
+
+
 class MissingNominalValue(Exception):
 	def __init__(self, message, code = None):
 		super().__init__(message)
@@ -30,12 +87,9 @@ class RedundantUncertainty(Exception):
 		super().__init__(message)
 		self.code = code
 
-nv = nv
-"""Alias for [`uncertainties.unumpy.nominal_values()`](https://pythonhosted.org/uncertainties/numpy_guide.html#uncertainties-and-nominal-values)"""
 
 class uarray(_np.ndarray):
-
-	__doc__ = """
+	"""
 	1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
 	of [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values
 	"""
@@ -46,17 +100,17 @@ class uarray(_np.ndarray):
 
 	@property
 	def nv(self):
-		"""Return the array of nominal values (read-only)."""
+		"Return the array of nominal values (read-only)."
 		return _uc.unumpy.nominal_values(_np.array(self))
 
 	@property
 	def se(self):
-		"""Return the array of standard errors (read-only)"""
+		"Return the array of standard errors (read-only)"
 		return _uc.unumpy.std_devs(_np.array(self))
 
 	@property
 	def correl(self):
-		"""Return the correlation matrix of the array elements (read-only)"""
+		"Return the correlation matrix of the array elements (read-only)"
 		return _np.array(_uc.correlation_matrix(self))
 
 	@property
@@ -66,7 +120,7 @@ class uarray(_np.ndarray):
 
 	@property
 	def mahalanobis(self):
-		"""Return the squared Mahalanobis distance from zero of the array (read-only)"""
+		"Return the squared Mahalanobis distance from zero of the array (read-only)"
 		flatself = self.n.flatten().reshape((1, self.size))
 		return (flatself @ _np.linalg.inv(self.covar) @ flatself.T)[0,0]
 
@@ -92,6 +146,9 @@ class CorrelData(dict):
 	"""
 
 	def __init__(self, *args, **kwargs):
+		"""
+		**Arguments:** same as for a `dict()`
+		"""
 		super().__init__(*args, **kwargs)
 		for k in self:
 			# cast as array
@@ -158,6 +215,7 @@ class CorrelData(dict):
 
 	@property
 	def size(self):
+		"Returns the number of data rows"
 		k = next(iter(self))
 		return len(self[k])
 
@@ -300,43 +358,23 @@ class CorrelData(dict):
 
 	def to_csv(self, filename, **kwargs):
 		'''
-		Write correlated data to a CSV file.
+		Write data to a CSV file.
 
 		**Arguments**
 		- `filename`: `str` or path to the CSV file
-		- `kwargs`: passed to CorrelData.str()
+		- `kwargs`: passed to `CorrelData.str()`
 		'''
 		with open(filename, 'w') as fid:
 			return fid.write(self.str(**kwargs))
 
-def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
-	'''
-	Test whether 2-D array `M` is symmetric and positive semidefinite.
-	'''
-	ev = _np.linalg.eigvals(M)
-	return (
-		_np.allclose(M, M.T) # M is symmetric
-		and _np.all(
-			(ev > 0) | _np.isclose(ev, 0)
-		) # all eignevalues are either real and strictly positive or close to zero
-	)
 
-
-def smart_type(s: str) -> (int | float | str):
-	'''
-	Tries to convert string `s` to an `int`, or to an `float` if that fails.
-	If both fail, return the original string unchanged.
-	'''
-	try: return int(s)
-	except: pass
-	try: return float(s)
-	except: pass
-	return s
-
-
-def read_data(data: str, sep: str = ',', validate_covar: bool = True):
-	'''
-	Read correlated data from a CSV-like string.
+def read_str(
+	data: str,
+	sep: str = ',',
+	validate_covar: bool = True,
+):
+	"""
+	Read data from a CSV-like string and return a `CorrelData` instance.
 
 	Column names are interpreted in the following way:
 	* In most cases, each columns is converted to a dict value, with the corresponding
@@ -370,24 +408,24 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	**Example**
 	```py
 	import correldata
-	data  = """
+	data  = '''
 	Sample, Tacid,  D47,   SE,         correl,,,  D48, covar,,,          correl_D47_D48
 	   FOO,   90., .245, .005,      1, 0.5, 0.5, .145,  4e-4, 1e-4, 1e-4, 0.5,   0,   0
 	   BAR,   90., .246, .005,    0.5,   1, 0.5, .146,  1e-4, 4e-4, 1e-4,   0, 0.5,   0
 	   BAZ,   90., .247, .005,    0.5, 0.5,   1, .147,  1e-4, 1e-4, 4e-4,   0,   0, 0.5
-	"""[1:-1]
-	print(correldata.read_data(data))
+	'''[1:-1]
+	print(correldata.read_str(data))
 
 	# yields:
 	#
-	# > {
-	#     'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
-	#     'Tacid': array([90., 90., 90.]),
-	#     'D47': uarray([0.245+/-0.004999999999999998, 0.246+/-0.004999999999999997, 0.247+/-0.005], dtype=object),
-	#     'D48': uarray([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object)
-	#   }
+	# >>> {
+	# 	'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
+	# 	'Tacid':  array([90., 90., 90.]),
+	# 	'D47':    uarray([0.245+/-0.005000000000000004, 0.246+/-0.005000000000000004, 0.247+/-0.005000000000000003], dtype=object),
+	# 	'D48': uarray([0.145+/-0.02, 0.146+/-0.020000000000000007, 0.147+/-0.02], dtype=object)
+	# }
 	```
-	'''
+	"""
 
 	data = [[smart_type(e.strip()) for e in l.split(sep)] for l in data.split('\n')]
 	N = len(data) - 1
@@ -515,173 +553,147 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	return allvalues
 
 
-def read_data_from_file(filename: str | _os.PathLike, **kwargs):
-	'''
+def read_csv(
+	filename: str | _os.PathLike,
+	**kwargs,
+):
+	"""
 	Read correlated data from a CSV file.
 
 	**Arguments**
 	- `filename`: `str` or path to the file to read from
 	- `kwargs`: passed to correldata.read_data()
-	'''
+	"""
 	with open(filename) as fid:
 		return read_data(fid.read(), **kwargs)
 
 
-def f2s(
-	x: Any,
-	f: (str | Callable | dict),
-	k: Hashable = None,
-	fb: (str | Callable) = 'z.6g',
-) -> str:
-	'''
-	Format `x` according to format `f`
+# def as_uarray(
+# 	X: (uarray | _np.ndarray | _uc.UFloat | float),
+# 	Xse: (_np.ndarray | float | None) = None,
+# 	CM: (_np.ndarray | None) = None,
+# ) -> uarray:
+# 	"""
+# 	Convert the input to an uarray. If the input is a single float or
+# 	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),
+# 	yields an uarray of size 1.
 
-	* If `f` is a string, return `f'{x:{f}}'`
-	* If `f` is a callable, return `f(x)`
-	* If `f` is a dict and optional argument `k` is a hashable,
-	  return f2s(x, f[k]), otherwise return f2s(x, fb)
-	'''
-	if isinstance (x, str):
-		return x
-	if isinstance (f, str):
-		return f'{x:{f}}'
-	if isinstance (f, Callable):
-		return f(x)
-	if isinstance (f, dict):
-		if k in f:
-			return f2s(x, f[k])
-		if isinstance (fb, str):
-			return f'{x:{fb}}'
-		if isinstance (fb, Callable):
-			return fb(x)
-	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a dict nor a callable.')
+# 	**Arguments**
+# 	* `X`: nominal value(s)
+# 	* `CM`: covariance matrix of X; not needed if elements of X are of type
+# 		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+# 		or if `Xse` is specified.
+# 	* `Xse`,: SE of X; not needed if elements of X are of type
+# 		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+# 		or if `CM` is specified.
 
-def as_uarray(
-	X: (uarray | _np.ndarray | _uc.UFloat | float),
-	Xse: (_np.ndarray | float | None) = None,
-	CM: (_np.ndarray | None) = None,
-) -> uarray:
-	"""
-	Convert the input to an uarray. If the input is a single float or
-	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),
-	yields an uarray of size 1.
+# 	If neither `CM` nor `Xse` are specified, assume SE = 0.
+# 	"""
 
-	**Arguments**
-	* `X`: nominal value(s)
-	* `CM`: covariance matrix of X; not needed if elements of X are of type
-		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
-		or if `Xse` is specified.
-	* `Xse`,: SE of X; not needed if elements of X are of type
-		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
-		or if `CM` is specified.
+# 	if isinstance(X, uarray):
+# 		return X
 
-	If neither `CM` nor `Xse` are specified, assume SE = 0.
-	"""
+# 	if isinstance(X, _np.ndarray):
+# 		if _np.all([isinstance(_, _uc.UFloat) for _ in X]):
+# 			return uarray(X)
+# 		else:
+# 			X = X.astype(float)
 
-	if isinstance(X, uarray):
-		return X
+# 			if CM is not None:
+# 				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
 
-	if isinstance(X, _np.ndarray):
-		if _np.all([isinstance(_, _uc.UFloat) for _ in X]):
-			return uarray(X)
-		else:
-			X = X.astype(float)
+# 			if CM is None:
+# 				if Xse is None:
+# 					Xse = X * 0
 
-			if CM is not None:
-				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+# 				CM = _np.diag((*Xse,))**2
 
-			if CM is None:
-				if Xse is None:
-					Xse = X * 0
+# 			return uarray(_uc.correlated_values(X, CM))
 
-				CM = _np.diag((*Xse,))**2
+# 	if isinstance(X, _uc.UFloat):
+# 		return uarray([X])
 
-			return uarray(_uc.correlated_values(X, CM))
+# 	if isinstance(X, (float, int)):
 
-	if isinstance(X, _uc.UFloat):
-		return uarray([X])
+# 		if CM is not None:
+# 			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+# 			Xse = CM[0,0]**0.5
 
-	if isinstance(X, (float, int)):
-
-		if CM is not None:
-			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
-			Xse = CM[0,0]**0.5
-
-		return uarray([_uc.ufloat(X, Xse)])
+# 		return uarray([_uc.ufloat(X, Xse)])
 
 
-def as_pair_of_uarrays(
-	X: (uarray | _np.ndarray | _uc.UFloat | float),
-	Y: (uarray | _np.ndarray | _uc.UFloat | float),
-	Xse: (_np.ndarray | float | None) = None,
-	Yse: (_np.ndarray | float | None) = None,
-	CM: (_np.ndarray | None) = None,
-) -> uarray:
-	"""
-	Convert the input to a pair of uarrays.
+# def as_pair_of_uarrays(
+# 	X: (uarray | _np.ndarray | _uc.UFloat | float),
+# 	Y: (uarray | _np.ndarray | _uc.UFloat | float),
+# 	Xse: (_np.ndarray | float | None) = None,
+# 	Yse: (_np.ndarray | float | None) = None,
+# 	CM: (_np.ndarray | None) = None,
+# ) -> uarray:
+# 	"""
+# 	Convert the input to a pair of uarrays.
 
-	**Arguments**
-	* `X`: x values
-	* `Y`: y values
-	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type
-		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
-		or if (`Xse`, `Yse`) are specified.
-	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type
-		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
-		or if `CM` is specified.
+# 	**Arguments**
+# 	* `X`: x values
+# 	* `Y`: y values
+# 	* `CM`: covariance matrix of `(*X, *Y)`; not needed if elements of X and Y are of type
+# 		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+# 		or if (`Xse`, `Yse`) are specified.
+# 	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type
+# 		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
+# 		or if `CM` is specified.
 
-	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.
-	"""
+# 	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.
+# 	"""
 
-	if type(X) is not type(Y):
-		raise TypeError(f'X ({type(X)}) and Y ({type(Y)}) must have the same type.')
+# 	if type(X) is not type(Y):
+# 		raise TypeError(f'X ({type(X)}) and Y ({type(Y)}) must have the same type.')
 
-	if isinstance(X, uarray):
-		return (X, Y)
+# 	if isinstance(X, uarray):
+# 		return (X, Y)
 
-	if isinstance(X, _np.ndarray):
-		if (
-			_np.all([isinstance(_, _uc.UFloat) for _ in X])
-			and
-			_np.all([isinstance(_, _uc.UFloat) for _ in Y])
-		):
-			return uarray(X), uarray(Y)
-		else:
-			X = X.astype(float)
-			Y = Y.astype(float)
+# 	if isinstance(X, _np.ndarray):
+# 		if (
+# 			_np.all([isinstance(_, _uc.UFloat) for _ in X])
+# 			and
+# 			_np.all([isinstance(_, _uc.UFloat) for _ in Y])
+# 		):
+# 			return uarray(X), uarray(Y)
+# 		else:
+# 			X = X.astype(float)
+# 			Y = Y.astype(float)
 
-			if CM is not None:
-				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
-				if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
+# 			if CM is not None:
+# 				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+# 				if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
 
-			if CM is None:
-				if Xse is None:
-					Xse = X * 0
-				if Yse is None:
-					Yse = Y * 0
+# 			if CM is None:
+# 				if Xse is None:
+# 					Xse = X * 0
+# 				if Yse is None:
+# 					Yse = Y * 0
 
-				CMx = _np.diag((*Xse,))**2
-				CMy = _np.diag((*Yse,))**2
-				return uarray(_uc.correlated_values(X, CMx)), uarray(_uc.correlated_values(Y, CMy))
+# 				CMx = _np.diag((*Xse,))**2
+# 				CMy = _np.diag((*Yse,))**2
+# 				return uarray(_uc.correlated_values(X, CMx)), uarray(_uc.correlated_values(Y, CMy))
 
-			else:
-				XY = uarray(_uc.correlated_values([*X, *Y], CM))
-				return XY[:X.size], XY[X.size:]
+# 			else:
+# 				XY = uarray(_uc.correlated_values([*X, *Y], CM))
+# 				return XY[:X.size], XY[X.size:]
 
-	if isinstance(X, _uc.UFloat):
-		return uarray([X]), uarray([Y])
+# 	if isinstance(X, _uc.UFloat):
+# 		return uarray([X]), uarray([Y])
 
-	if isinstance(X, (float, int)):
+# 	if isinstance(X, (float, int)):
 
-		if CM is not None:
-			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
-			if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
+# 		if CM is not None:
+# 			if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
+# 			if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
 
-		if CM is None:
-			if Xse is None: raise ValueError('Not enough information: specify either CM or Xse.')
-			if Yse is None: raise ValueError('Not enough information: specify either CM or Yse.')
+# 		if CM is None:
+# 			if Xse is None: raise ValueError('Not enough information: specify either CM or Xse.')
+# 			if Yse is None: raise ValueError('Not enough information: specify either CM or Yse.')
 
-			CM = _np.diag([Xse, Yse])**2
+# 			CM = _np.diag([Xse, Yse])**2
 
-		XY = uarray(_uc.correlated_values([X, Y], CM))
-		return XY[:1], XY[1:]
+# 		XY = uarray(_uc.correlated_values([X, Y], CM))
+# 		return XY[:1], XY[1:]

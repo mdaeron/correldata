@@ -23,7 +23,7 @@ def test_basic():
 	Z = cdata['Z']*4.0
 
 	print(type(X.n[0]))
-	cdata = correldata.CorrelData(Name = names, S = S, X = X, Y = Y, Z = Z)
+	cdata = correldata.CorrelData(Name = names, S = S, X = X, U = Y+Z, V = Y-Z)
 	print(cdata.str())
 	cdata.to_csv('tests/test.csv')
 
