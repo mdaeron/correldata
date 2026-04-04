@@ -298,6 +298,17 @@ class CorrelData(dict):
 
 		return '\n'.join([sep.join(l) for l in lines])
 
+	def to_csv(self, filename, **kwargs):
+		'''
+		Write correlated data to a CSV file.
+
+		**Arguments**
+		- `filename`: `str` or path to the CSV file
+		- `kwargs`: passed to CorrelData.str()
+		'''
+		with open(filename, 'w') as fid:
+			return fid.write(self.str(**kwargs))
+
 def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
 	'''
 	Test whether 2-D array `M` is symmetric and positive semidefinite.
@@ -544,155 +555,6 @@ def f2s(
 		if isinstance (fb, Callable):
 			return fb(x)
 	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a dict nor a callable.')
-
-
-
-def data_string(
-	data: dict,
-	sep: str = ',',
-	include_fields: list = None,
-	exclude_fields: list = [],
-	float_format: (str | dict | Callable) = 'z.6g',
-	correl_format: (str | dict | Callable) = 'z.6f',
-	default_float_format: (str | Callable) = 'z.6g',
-	default_correl_format: (str | Callable) = 'z.6f',
-	show_nv: bool = True,
-	show_se: bool = True,
-	show_correl: bool = True,
-	show_mixed_correl: bool = True,
-	align: str = '>',
-	atol: float = 1e-12,
-	rtol: float = 1e-12,
-):
-	'''
-	Generate CSV-like string from correlated data
-
-	**Arguments**
-	- `data`: dict of arrays with strings, floats or correlated data
-	- `sep`: the CSV separator
-	- `include_fields`: subset of fields to write; if `None`, write all fields
-	- `exclude_fields`: subset of fields to ignore (takes precedence over `include_fields`);
-	  to exclude only the SE for field `foo`, include `SE_foo`; same goes for `correl_foo`
-	- `float_format`: formatting for float values. May be a string (ex: `'z.3f'`), a callable
-	  (ex: `lambda x: '.2f' if x else '0'`), or a dictionary of strings and/or callables, with dict keys
-	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': (lambda x: str(x))}`).
-	- `correl_format`: same as `float_format`, but applies to correlation matrix elements
-	- `default_float_format`: only used when `float_format` is a dict; in that case, fields
-	  missing from `float_format.keys()` will use `default_float_format` instead.
-	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': `lambda x: str(x)`}`).
-	- `default_correl_format`: same as `default_float_format`, but applies to `correl_format`
-	- `show_nv`: show nominal values
-	- `show_se`: show standard errors
-	- `show_correl`: show correlations for any given field (ex: `correl_X`)
-	- `show_mixed_correl`: show correlations between different fields (ex: `correl_X_Y`)
-	- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
-	- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
-	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
-	- `rtol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
-	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
-
-
-	**Example**
-
-	```py
-	from correldata import _uc
-	from correldata import _np
-	from correldata import *
-
-	X = uarray(_uc.correlated_values([1., 2., 3.], _np.eye(3)*0.09))
-	Y = uarray(_uc.correlated_values([4., 5., 6.], _np.eye(3)*0.16))
-
-	data = dict(X=X, Y=Y, Z=X+Y)
-
-	print(data_string(data, float_format = 'z.1f', correl_format = 'z.1f'))
-
-	# yields:
-	#
-	#   X, SE_X,   Y, SE_Y,   Z, SE_Z, correl_X_Z,    ,    , correl_Y_Z,    ,
-	# 1.0,  0.3, 4.0,  0.4, 5.0,  0.5,        0.6, 0.0, 0.0,        0.8, 0.0, 0.0
-	# 2.0,  0.3, 5.0,  0.4, 7.0,  0.5,        0.0, 0.6, 0.0,        0.0, 0.8, 0.0
-	# 3.0,  0.3, 6.0,  0.4, 9.0,  0.5,        0.0, 0.0, 0.6,        0.0, 0.0, 0.8
-	```
-	'''
-	if include_fields is None:
-		include_fields = [_ for _ in data]
-	cols, ufields = [], []
-	for f in include_fields:
-		if f in exclude_fields:
-			continue
-		if isinstance(data[f], uarray):
-			ufields.append(f)
-			N = data[f].size
-			if show_nv:
-				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f].n])
-			if show_se and (f'SE_{f}' not in exclude_fields):
-				cols.append([f'SE_{f}'] + [f2s(_, float_format, f, default_float_format) for _ in data[f].s])
-			if show_correl and (f'correl_{f}' not in exclude_fields):
-				CM = _uc.correlation_matrix(data[f])
-				if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
-					for i in range(N):
-						cols.append(
-							['' if i else f'correl_{f}']
-							+ [
-								f2s(
-									CM[i,j],
-									correl_format,
-									f,
-									default_correl_format,
-								)
-								for j in range(N)
-							]
-						)
-		elif show_nv:
-				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f]])
-
-	if show_mixed_correl:
-		for i in range(len(ufields)):
-			for j in range(i):
-				if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
-					continue
-				CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N, -N:]
-				if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
-					for k in range(N):
-						cols.append(
-							['' if k else f'correl_{ufields[j]}_{ufields[i]}']
-							+ [
-								f2s(
-									CM[k,l],
-									correl_format,
-									f,
-									default_correl_format,
-								)
-								for l in range(N)
-							]
-						)
-
-	lines = list(map(list, zip(*cols)))
-
-	if align:
-		lengths = [max([len(e) for e in l]) for l in cols]
-		for l in lines:
-			for k,ln in enumerate(lengths):
-				l[k] = f'{l[k]:{align}{ln}s}'
-		return '\n'.join([(sep+' ').join(l) for l in lines])
-
-	return '\n'.join([sep.join(l) for l in lines])
-
-
-def save_data_to_file(data, filename, **kwargs):
-	'''
-	aaa
-
-	Write correlated data to a CSV file.
-
-	**Arguments**
-	- `data`: dict of arrays with strings, floats or correlated data
-	- `filename`: `str` or path to the file to read from
-	- `kwargs`: passed to correldata.data_string()
-	'''
-	with open(filename, 'w') as fid:
-		return fid.write(data_string(data, **kwargs))
-
 
 def as_uarray(
 	X: (uarray | _np.ndarray | _uc.UFloat | float),

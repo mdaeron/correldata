@@ -22,8 +22,10 @@ def test_basic():
 	Y = cdata['Y']*3.0
 	Z = cdata['Z']*4.0
 
+	print(type(X.n[0]))
 	cdata = correldata.CorrelData(Name = names, S = S, X = X, Y = Y, Z = Z)
 	print(cdata.str())
+	cdata.to_csv('tests/test.csv')
 
 if __name__ == '__main__':
 	test_basic()
