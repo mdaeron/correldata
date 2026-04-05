@@ -16,7 +16,7 @@ with open(srcpath / '_metadata.py', 'w') as fid:
 		('description', toml['project']['description']),
 		('author',      toml['project']['authors'][0]['name']),
 		('contact',     toml['project']['authors'][0]['email']),
-		('license',     toml['project']['license']['text']),
+		('license',     toml['project']['license']),
 		('copyright',   toml['project']['authors'][0]['name']),
 		('date',        datetime.date.today().isoformat()),
 	):

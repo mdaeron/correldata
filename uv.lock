@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "correldata"
-version = "2.0.0"
+version = "2.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "uncertainties" },
