@@ -1,2 +1,2 @@
 * Add `changelog.md`
-* Go through docstrings using admonestations
+* Go through docstrings using admonitions
