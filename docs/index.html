@@ -502,10 +502,10 @@ as defined in the <a href="https://pypi.org/project/uncertainties">uncertainties
 </span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>
 </span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a><span class="sd">	**Arguments**</span>
 </span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a><span class="sd">	- `filename`: `str` or path to the file to read from</span>
-</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a><span class="sd">	- `kwargs`: passed to correldata.read_data()</span>
+</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a><span class="sd">	- `kwargs`: passed to correldata.read_str()</span>
 </span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a><span class="sd">	&quot;&quot;&quot;</span>
 </span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>	<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
-</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>		<span class="k">return</span> <span class="n">read_data</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>		<span class="k">return</span> <span class="n">read_str</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>
 </span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a><span class="k">class</span><span class="w"> </span><span class="nc">uarray</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -1583,10 +1583,10 @@ bypasses this computationally expensive step.</li>
 </span><span id="read_csv-349"><a href="#read_csv-349"><span class="linenos">349</span></a>
 </span><span id="read_csv-350"><a href="#read_csv-350"><span class="linenos">350</span></a><span class="sd">	**Arguments**</span>
 </span><span id="read_csv-351"><a href="#read_csv-351"><span class="linenos">351</span></a><span class="sd">	- `filename`: `str` or path to the file to read from</span>
-</span><span id="read_csv-352"><a href="#read_csv-352"><span class="linenos">352</span></a><span class="sd">	- `kwargs`: passed to correldata.read_data()</span>
+</span><span id="read_csv-352"><a href="#read_csv-352"><span class="linenos">352</span></a><span class="sd">	- `kwargs`: passed to correldata.read_str()</span>
 </span><span id="read_csv-353"><a href="#read_csv-353"><span class="linenos">353</span></a><span class="sd">	&quot;&quot;&quot;</span>
 </span><span id="read_csv-354"><a href="#read_csv-354"><span class="linenos">354</span></a>	<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
-</span><span id="read_csv-355"><a href="#read_csv-355"><span class="linenos">355</span></a>		<span class="k">return</span> <span class="n">read_data</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="read_csv-355"><a href="#read_csv-355"><span class="linenos">355</span></a>		<span class="k">return</span> <span class="n">read_str</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1596,7 +1596,7 @@ bypasses this computationally expensive step.</li>
 
 <ul>
 <li><code>filename</code>: <code>str</code> or path to the file to read from</li>
-<li><code>kwargs</code>: passed to correldata.read_data()</li>
+<li><code>kwargs</code>: passed to <a href="#read_str">correldata.read_str()</a></li>
 </ul>
 </div>
 

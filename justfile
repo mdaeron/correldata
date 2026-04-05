@@ -11,4 +11,7 @@ build:
 	uv build
 
 testpublish: build
-	uv publish --publish-url https://test.pypi.org/legacy
+	uv publish --publish-url https://test.pypi.org/legacy/
+
+publish: build
+	uv publish

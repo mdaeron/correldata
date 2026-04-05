@@ -1,4 +1,4 @@
-__version__     = "2.0.0b1"
+__version__     = "2.0.0b3"
 __description__ = "Dataframe-like tables of data with correlated uncertainties"
 __author__      = "Mathieu Daëron"
 __contact__     = "mathieu@daeron.fr"

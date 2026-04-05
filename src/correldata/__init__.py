@@ -348,10 +348,10 @@ def read_csv(
 
 	**Arguments**
 	- `filename`: `str` or path to the file to read from
-	- `kwargs`: passed to correldata.read_data()
+	- `kwargs`: passed to correldata.read_str()
 	"""
 	with open(filename) as fid:
-		return read_data(fid.read(), **kwargs)
+		return read_str(fid.read(), **kwargs)
 
 
 class uarray(_np.ndarray):
