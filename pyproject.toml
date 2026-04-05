@@ -1,44 +1,33 @@
 [project]
 name = "correldata"
-authors = [{name = "Mathieu Daëron", email = "mathieu@daeron.fr"}]
+version = "2.0.0"
+description = "Dataframe-like tables of data with correlated uncertainties"
 readme = "readme.md"
-license = {file = "LICENSE"}
-dynamic = ["version", "description"]
-classifiers = ["License :: OSI Approved :: MIT License"]
-requires-python = ">=3.11"
+license = { "text" = "MIT License: https://opensource.org/licenses/MIT" }
+authors = [
+    { name = "Mathieu Daëron", email = "mathieu@daeron.fr" }
+]
+requires-python = ">=3.12"
 dependencies = [
-    "numpy>=2.1.1",
-    "uncertainties>=3.2.2",
+    "uncertainties>=3.2.3",
 ]
 
 [project.urls]
-Home = "https://github.com/mdaeron/D95thermo"
+Home = "https://github.com/mdaeron/correldata"
+Documentation = "https://mdaeron.github.io/correldata"
 
 [build-system]
-requires = [
-    "pdoc>=14.7.0",
-	"flit_core >=3.2,<4",
-    "flit>=3.9.0",
-	]
-build-backend = "flit_core.buildapi"
+requires = ["uv_build>=0.1"]
+build-backend = "uv_build"
 
-[tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+[dependency-groups]
+dev = [
+	"pdoc>=16.0.0",
+	"pytest>=9.0.2",
+]
 
-[tool.pixi.system-requirements]
-macos = "12.7.5"
-
-[tool.pixi.pypi-dependencies]
-correldata = { path = ".", editable = true }
-
-[tool.pixi.feature.dev.dependencies]
-pdoc = ">=14.4.0,<15"
-flit = ">=3.9.0,<4"
-
-[tool.pixi.feature.dev.tasks]
-doc     = {cmd = 'python ../build_doc.py', cwd = 'src'}
-publish = {cmd = 'flit publish'}
-
-[tool.pixi.environments]
-dev = ["dev"]
+[tool.pytest.ini_options]
+filterwarnings = [
+	"ignore::pytest.PytestCollectionWarning",
+	"ignore::FutureWarning",
+]

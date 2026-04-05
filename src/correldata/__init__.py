@@ -1,87 +1,52 @@
 """
-Read/write vectors of correlated data from/to a csv file.
+Dataframe-like tables of data with correlated uncertainties
 
 These data are stored in a dictionary, whose values are numpy arrays
 with elements which may be strings, floats, or floats with associated uncertainties
 as defined in the [uncertainties](https://pypi.org/project/uncertainties) library.
 """
 
-
-__author__    = 'Mathieu Daëron'
-__contact__   = 'mathieu@daeron.fr'
-__copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
-__license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-11-02'
-__version__   = '1.6.0'
-
-
 import os as _os
 import numpy as _np
+import warnings as _wrn
 import uncertainties as _uc
 
 from typing import Callable, Hashable, Any
 from uncertainties.unumpy import nominal_values as nv
 
+from ._metadata import *
+
+
+class MissingNominalValue(Exception):
+	"Exception raised in case of missing nominal value(s)"
+	pass
+
+class MissingStandardError(Exception):
+	"Exception raised in case of missing standard error(s)"
+	pass
+
+class RedundantUncertainty(Exception):
+	"Exception raised in case of redundant/ambiguous specification of uncertainties"
+	pass
+
+
 nv = nv
-"""Alias for [`uncertainties.unumpy.nominal_values()`](https://pythonhosted.org/uncertainties/numpy_guide.html#uncertainties-and-nominal-values)"""
+"Alias for [`uncertainties.unumpy.nominal_values()`](https://pythonhosted.org/uncertainties/numpy_guide.html#uncertainties-and-nominal-values)"
 
-class uarray(_np.ndarray):
 
-	__doc__ = """
-	1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
-	of [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values
-	"""
-
-	def __new__(cls, a):
-		obj = _np.asarray(a).view(cls)
-		return obj
-	
-	@property
-	def nv(self):
-		"""Return the array of nominal values (read-only)."""
-		return _uc.unumpy.nominal_values(_np.array(self))
-
-	@property
-	def se(self):
-		"""Return the array of standard errors (read-only)"""
-		return _uc.unumpy.std_devs(_np.array(self))
-
-	@property
-	def correl(self):
-		"""Return the correlation matrix of the array elements (read-only)"""
-		return _np.array(_uc.correlation_matrix(self))
-
-	@property
-	def covar(self):
-		"""Return the covariance matrix of the array elements (read-only)"""
-		return _np.array(_uc.covariance_matrix(self))
-	
-	@property
-	def mahalanobis(self):
-		"""Return the squared Mahalanobis distance from zero of the array (read-only)"""
-		flatself = self.n.flatten().reshape((1, self.size))
-		return (flatself @ _np.linalg.inv(self.covar) @ flatself.T)[0,0]
-	
-	n = nv
-	"Alias for `uarray.nv`"
-	
-	s = se
-	"Alias for `uarray.se`"
-	
-	cor = correl
-	"Alias for `uarray.correl`"
-	
-	cov = covar
-	"Alias for `uarray.covar`"
-	
-	m = mahalanobis
-	"Alias for `uarray.mahalanobis`"
+def smart_type(s: str) -> (int | float | str):
+	'''
+	Tries to convert string `s` to an `int`, or to an `float` if that fails.
+	If both fail, return the original string unchanged.
+	'''
+	if s.isdigit(): return int(s)
+	try: return float(s)
+	except: pass
+	return s
 
 
 def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
-	'''
-	Test whether 2-D array `M` is symmetric and positive semidefinite.
-	'''
+	"Test whether 2-D array `M` is symmetric and positive semidefinite."
 	ev = _np.linalg.eigvals(M)
 	return (
 		_np.allclose(M, M.T) # M is symmetric
@@ -91,22 +56,110 @@ def is_symmetric_positive_semidefinite(M: _np.ndarray) -> bool:
 	)
 
 
-def smart_type(s: str) -> (int | float | str):
+def f2s(
+	x: Any,
+	f: (str | Callable | dict),
+	k: Hashable = None,
+	fb: (str | Callable) = 'z.6g',
+) -> str:
 	'''
-	Tries to convert string `s` to an `int`, or to an `float` if that fails.
-	If both fail, return the original string unchanged.
+	Format `x` according to format `f`
+
+	* If `f` is a string, return `f'{x:{f}}'`
+	* If `f` is a callable, return `f(x)`
+	* If `f` is a dict and optional argument `k` is a hashable,
+	  return f2s(x, f[k]), otherwise return f2s(x, fb)
 	'''
-	try: return int(s)
-	except: pass
-	try: return float(s)
-	except: pass
-	return s
+	if isinstance (x, str):
+		return x
+	if isinstance (f, str):
+		return f'{x:{f}}'
+	if isinstance (f, Callable):
+		return f(x)
+	if isinstance (f, dict):
+		if k in f:
+			return f2s(x, f[k])
+		if isinstance (fb, str):
+			return f'{x:{fb}}'
+		if isinstance (fb, Callable):
+			return fb(x)
+	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a callable nor a dict.')
 
 
-def read_data(data: str, sep: str = ',', validate_covar: bool = True):
-	'''
-	Read correlated data from a CSV-like string.
-	
+def read_list(
+	data: list,
+):
+	"""
+	Read data from a list of dicts and return a `CorrelData` instance.
+
+	Valid arguments are lists of dicts where each dict share a non-empty set of keys,
+	i.e. there must be one of more keys that all dicts have in common.
+
+	> [!NOTE]
+	> Primarily intended for data where uncertainties are already specified as
+	> [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values.
+	> In other words, this function offers no built-in way to specify uncertainties
+	> (no keywords such as `SE`, `correl`, or `covar`).
+
+	> [!TIP]
+	> **Example**
+	>
+	> ```py
+	> import correldata
+	>
+	> foo = correldata.CorrelData(
+	>     X = [1., 2., 3.],
+	>     SE_X = [1., 1., 1.],
+	>     Y = [4., 5., 6.],
+	>     SE_Y = [1., 1., 1.],
+	> )
+	>
+	> U = foo['X'] + foo['Y']
+	> V = foo['X'] - foo['Y']
+	>
+	> bar = correldata.read_list([
+	>     dict(Name = 'abc', U = U[0], V = V[0]),
+	>     dict(Name = 'def', U = U[1], V = V[1]),
+	>     dict(Name = 'ghi', U = U[2], V = V[2]),
+	> ])
+	>
+	> print(bar.str())
+	> ```
+	> yields:
+	> ```text
+	> Name, U,    SE_U,  V,    SE_V
+	>  abc, 5, 1.41421, -3, 1.41421
+	>  def, 7, 1.41421, -3, 1.41421
+	>  ghi, 9, 1.41421, -3, 1.41421
+	> ```
+	"""
+	if len(data) == 0:
+		raise _wrn.warn("Input list is empty; returning None.")
+		return None
+
+	shared_keys = [k for k in data[0]]
+	for row in data[1:]:
+		shared_keys = [k for k in shared_keys if k in row]
+
+	if len(shared_keys) == 0:
+		raise _wrn.warn("No common subset of keys; returning None.")
+		return None
+
+	data_dict = {}
+	for k in shared_keys:
+		data_dict[k] = [row[k] for row in data]
+
+	return CorrelData(data_dict)
+
+
+def read_str(
+	data: str,
+	sep: str = ',',
+	validate_covar: bool = True,
+):
+	"""
+	Read data from a CSV-like string and return a `CorrelData` instance.
+
 	Column names are interpreted in the following way:
 	* In most cases, each columns is converted to a dict value, with the corresponding
 	dict key being the column's label.
@@ -135,28 +188,30 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	- `validate_covar`: whether to check that the overall covariance matrix
 	is symmetric and positive semidefinite. Specifying `validate_covar = False`
 	bypasses this computationally expensive step.
-	
+
 	**Example**
 	```py
 	import correldata
-	data  = """
+
+	data  = '''
 	Sample, Tacid,  D47,   SE,         correl,,,  D48, covar,,,          correl_D47_D48
 	   FOO,   90., .245, .005,      1, 0.5, 0.5, .145,  4e-4, 1e-4, 1e-4, 0.5,   0,   0
 	   BAR,   90., .246, .005,    0.5,   1, 0.5, .146,  1e-4, 4e-4, 1e-4,   0, 0.5,   0
 	   BAZ,   90., .247, .005,    0.5, 0.5,   1, .147,  1e-4, 1e-4, 4e-4,   0,   0, 0.5
-	"""[1:-1]
-	print(correldata.read_data(data))
-	
-	# yields:
-	# 
-	# > {
-	#     'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
-	#     'Tacid': array([90., 90., 90.]),
-	#     'D47': uarray([0.245+/-0.004999999999999998, 0.246+/-0.004999999999999997, 0.247+/-0.005], dtype=object),
-	#     'D48': uarray([0.145+/-0.019999999999999993, 0.146+/-0.019999999999999993, 0.147+/-0.019999999999999997], dtype=object)
-	#   }
+	'''[1:-1]
+
+	print(correldata.read_str(data))
 	```
-	'''
+	yields:
+	```
+	{
+	  'Sample': array(['FOO', 'BAR', 'BAZ'], dtype='<U3'),
+	  'Tacid':  array([90., 90., 90.]),
+	  'D47':    uarray([0.245+/-0.005, 0.246+/-0.005, 0.247+/-0.005], dtype=object),
+	  'D48':    uarray([0.145+/-0.02, 0.146+/-0.02, 0.147+/-0.02], dtype=object)
+	}
+	```
+	"""
 
 	data = [[smart_type(e.strip()) for e in l.split(sep)] for l in data.split('\n')]
 	N = len(data) - 1
@@ -281,197 +336,334 @@ def read_data(data: str, sep: str = ',', validate_covar: bool = True):
 	for i, x in enumerate(values):
 		allvalues[x] = corvalues[i*N:i*N+N]
 
-	return allvalues
+	return CorrelData(allvalues)
 
 
-def read_data_from_file(filename: str | _os.PathLike, **kwargs):
-	'''
+def read_csv(
+	filename: str | _os.PathLike,
+	**kwargs,
+):
+	"""
 	Read correlated data from a CSV file.
 
 	**Arguments**
 	- `filename`: `str` or path to the file to read from
-	- `kwargs`: passed to correldata.read_data()
-	'''
+	- `kwargs`: passed to correldata.read_str()
+	"""
 	with open(filename) as fid:
-		return read_data(fid.read(), **kwargs)
+		return read_str(fid.read(), **kwargs)
 
 
-def f2s(
-	x: Any,
-	f: (str | Callable | dict),
-	k: Hashable = None,
-	fb: (str | Callable) = 'z.6g',
-) -> str:
-	'''
-	Format `x` according to format `f`
-	
-	* If `f` is a string, return `f'{x:{f}}'`
-	* If `f` is a callable, return `f(x)`
-	* If `f` is a dict and optional argument `k` is a hashable,
-	  return f2s(x, f[k]), otherwise return f2s(x, fb)
-	'''
-	if isinstance (x, str):
-		return x
-	if isinstance (f, str):
-		return f'{x:{f}}'
-	if isinstance (f, Callable):
-		return f(x)
-	if isinstance (f, dict):
-		if k in f:
-			return f2s(x, f[k])
-		if isinstance (fb, str):
-			return f'{x:{fb}}'
-		if isinstance (fb, Callable):
-			return fb(x)
-	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a dict nor a callable.')
-	
+class uarray(_np.ndarray):
+	"""
+	1-D [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html)
+	of [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values
+	"""
+
+	def __new__(cls, a):
+		obj = _np.asarray(a).view(cls)
+		return obj
+
+	@property
+	def nv(self):
+		"Return the array of nominal values (read-only)."
+		return _uc.unumpy.nominal_values(_np.array(self))
+
+	@property
+	def se(self):
+		"Return the array of standard errors (read-only)"
+		return _uc.unumpy.std_devs(_np.array(self))
+
+	@property
+	def correl(self):
+		"Return the correlation matrix of the array elements (read-only)"
+		return _np.array(_uc.correlation_matrix(self))
+
+	@property
+	def covar(self):
+		"""Return the covariance matrix of the array elements (read-only)"""
+		return _np.array(_uc.covariance_matrix(self))
+
+	@property
+	def mahalanobis(self):
+		"Return the squared Mahalanobis distance from zero of the array (read-only)"
+		flatself = self.n.flatten().reshape((1, self.size))
+		return (flatself @ _np.linalg.inv(self.covar) @ flatself.T)[0,0]
+
+	n = nv
+	"Alias for `uarray.nv`"
+
+	s = se
+	"Alias for `uarray.se`"
+
+	cor = correl
+	"Alias for `uarray.correl`"
+
+	cov = covar
+	"Alias for `uarray.covar`"
+
+	m = mahalanobis
+	"Alias for `uarray.mahalanobis`"
 
 
-def data_string(
-	data: dict,
-	sep: str = ',',
-	include_fields: list = None,
-	exclude_fields: list = [],
-	float_format: (str | dict | Callable) = 'z.6g',
-	correl_format: (str | dict | Callable) = 'z.6f',
-	default_float_format: (str | Callable) = 'z.6g',
-	default_correl_format: (str | Callable) = 'z.6f',
-	show_nv: bool = True,
-	show_se: bool = True,
-	show_correl: bool = True,
-	show_mixed_correl: bool = True,
-	align: str = '>',
-	atol: float = 1e-12,
-	rtol: float = 1e-12,
-):
-	'''
-	Generate CSV-like string from correlated data
+class CorrelData(dict):
+	"""
+	Dataframe-like tables of data with correlated uncertainties
+	"""
 
-	**Arguments**
-	- `data`: dict of arrays with strings, floats or correlated data
-	- `sep`: the CSV separator
-	- `include_fields`: subset of fields to write; if `None`, write all fields
-	- `exclude_fields`: subset of fields to ignore (takes precedence over `include_fields`);
-	  to exclude only the SE for field `foo`, include `SE_foo`; same goes for `correl_foo`
-	- `float_format`: formatting for float values. May be a string (ex: `'z.3f'`), a callable
-	  (ex: `lambda x: '.2f' if x else '0'`), or a dictionary of strings and/or callables, with dict keys
-	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': (lambda x: str(x))}`).
-	- `correl_format`: same as `float_format`, but applies to correlation matrix elements
-	- `default_float_format`: only used when `float_format` is a dict; in that case, fields
-	  missing from `float_format.keys()` will use `default_float_format` instead.
-	  corresponding to different fields (ex: `{'foo': '.2e', 'bar': `lambda x: str(x)`}`).
-	- `default_correl_format`: same as `default_float_format`, but applies to `correl_format`
-	- `show_nv`: show nominal values
-	- `show_se`: show standard errors
-	- `show_correl`: show correlations for any given field (ex: `correl_X`)
-	- `show_mixed_correl`: show correlations between different fields (ex: `correl_X_Y`)
-	- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
-	- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
-	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
-	- `rtol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
-	  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
-	
-	
-	**Example**
-	
-	```py
-	from correldata import _uc
-	from correldata import _np
-	from correldata import *
-	
-	X = uarray(_uc.correlated_values([1., 2., 3.], _np.eye(3)*0.09))
-	Y = uarray(_uc.correlated_values([4., 5., 6.], _np.eye(3)*0.16))
-	
-	data = dict(X=X, Y=Y, Z=X+Y)
-	
-	print(data_string(data, float_format = 'z.1f', correl_format = 'z.1f'))
-	
-	# yields:
-	# 
-	#   X, SE_X,   Y, SE_Y,   Z, SE_Z, correl_X_Z,    ,    , correl_Y_Z,    ,    
-	# 1.0,  0.3, 4.0,  0.4, 5.0,  0.5,        0.6, 0.0, 0.0,        0.8, 0.0, 0.0
-	# 2.0,  0.3, 5.0,  0.4, 7.0,  0.5,        0.0, 0.6, 0.0,        0.0, 0.8, 0.0
-	# 3.0,  0.3, 6.0,  0.4, 9.0,  0.5,        0.0, 0.0, 0.6,        0.0, 0.0, 0.8
-	```
-	'''
-	if include_fields is None:
-		include_fields = [_ for _ in data]
-	cols, ufields = [], []
-	for f in include_fields:
-		if f in exclude_fields:
-			continue
-		if isinstance(data[f], uarray):
-			ufields.append(f)
-			N = data[f].size
-			if show_nv:
-				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f].n])
-			if show_se and (f'SE_{f}' not in exclude_fields):
-				cols.append([f'SE_{f}'] + [f2s(_, float_format, f, default_float_format) for _ in data[f].s])
-			if show_correl and (f'correl_{f}' not in exclude_fields):
-				CM = _uc.correlation_matrix(data[f])
-				if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
-					for i in range(N):
-						cols.append(
-							['' if i else f'correl_{f}']
-							+ [
-								f2s(
-									CM[i,j],
-									correl_format,
-									f,
-									default_correl_format,
-								)
-								for j in range(N)
-							]
-						)
-		elif show_nv:
-				cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in data[f]])
+	def __init__(self, *args, **kwargs):
+		"""
+		**Arguments:** same as for a `dict()`
+		"""
+		super().__init__(*args, **kwargs)
+		for k in self:
+			# cast as array
+			self[k] = _np.asarray(self[k])
+			# cast as uarray if ufloats are present
+			if any([
+				isinstance(_, _uc.UFloat)
+				for _ in self[k]
+			]):
+				self[k] = uarray(self[k])
 
-	if show_mixed_correl:
-		for i in range(len(ufields)):
-			for j in range(i):
-				if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
-					continue
-				CM = _uc.correlation_matrix((*data[ufields[i]], *data[ufields[j]]))[:N, -N:]
-				if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
-					for k in range(N):
-						cols.append(
-							['' if k else f'correl_{ufields[j]}_{ufields[i]}']
-							+ [
-								f2s(
-									CM[k,l],
-									correl_format,
-									f,
-									default_correl_format,
-								)
-								for l in range(N)
-							]
-						)
+		# check that lengths are consistent
+		firstk = next(iter(self))
+		n = len(self[firstk])
+		for k in self:
+			assert self[k].shape in [(n,), (n, n)], f'{k}.shape is {self[k].shape} and not ({n}, {n}) as expected'
 
-	lines = list(map(list, zip(*cols)))
+		# sort keys for uncertainty assignment
+		keys, skeys, corkeys, covkeys = [], [], [], []
+		for k in self:
+			if k.startswith('SE_'):
+				skeys.append(k[3:])
+			elif k.startswith('correl_'):
+				corkeys.append(k[7:])
+			elif k.startswith('covar_'):
+				covkeys.append(k[6:])
+			else:
+				keys.append(k)
 
-	if align:
-		lengths = [max([len(e) for e in l]) for l in cols]
-		for l in lines:
-			for k,ln in enumerate(lengths):
-				l[k] = f'{l[k]:{align}{ln}s}'
-		return '\n'.join([(sep+' ').join(l) for l in lines])
+		for k in covkeys:
+			# check for missing nominal values
+			if k not in keys:
+				raise MissingNominalValue(f'covar_{k} is missing a corresponding nominal value {k}')
+			# check for redundant specification of uncertainty
+			if k in corkeys:
+				raise RedundantUncertainty(f'Both covar_{k} and  correl_{k} are specified')
+			if k in skeys:
+				raise RedundantUncertainty(f'Both covar_{k} and  SE_{k} are specified')
 
-	return '\n'.join([sep.join(l) for l in lines])
+		for k in corkeys:
+			# check for correl without SE
+			if k not in skeys:
+				raise MissingStandardError(f'correl_{k} is missing a corresponding standard error SE_{k}')
+
+		for k in skeys:
+			# check for missing nominal values
+			if k not in keys:
+				raise MissingNominalValue(f'SE_{k} is missing a corresponding nominal value {k}')
+
+		for k in covkeys:
+			self[k] = uarray(_uc.correlated_values(self[k], self[f'covar_{k}']))
+			self.pop(f'covar_{k}')
+
+		for k in skeys:
+			se = _np.array(self[f'SE_{k}'])
+			if k in corkeys:
+				correl = _np.array(self[f'correl_{k}'])
+				self.pop(f'correl_{k}')
+			else:
+				correl = _np.eye(len(self[k]))
+			covar = se[None,:] * correl * se[:, None]
+			self[k] = uarray(_uc.correlated_values(self[k], covar))
+			self.pop(f'SE_{k}')
+
+	@property
+	def size(self):
+		"Returns the number of data rows"
+		k = next(iter(self))
+		return len(self[k])
+
+	@property
+	def rows(self):
+		"""
+		Iterator over rows of data
+
+		**Usage:**
+
+		```py
+		import correldata, numpy
+
+		data = correldata.CorrelData(
+			X = numpy.array([1, 2, 3]),
+			Y = numpy.array([4, 5, 6]),
+		)
+
+		for r in data.rows:
+			print(r)
+		```
+		yields:
+		```
+		>>> {'X': np.int64(1), 'Y': np.int64(4)}
+		>>> {'X': np.int64(2), 'Y': np.int64(5)}
+		>>> {'X': np.int64(3), 'Y': np.int64(6)}
+		```
+		"""
+		return self._row_iterator()
+
+	def _row_iterator(self):
+		n = next(iter(self.values())).shape[0]
+		for i in range(n):
+			yield {k: v[i] for k, v in self.items()}
+
+	def str(
+		self,
+		sep: str = ',',
+		include_fields: list = None,
+		exclude_fields: list = [],
+		float_format: (str | dict | Callable) = 'z.6g',
+		correl_format: (str | dict | Callable) = 'z.6f',
+		default_float_format: (str | Callable) = 'z.6g',
+		default_correl_format: (str | Callable) = 'z.6f',
+		show_nv: bool = True,
+		show_se: bool = True,
+		show_correl: bool = True,
+		show_mixed_correl: bool = True,
+		align: str = '>',
+		atol: float = 1e-12,
+		rtol: float = 1e-12,
+	):
+		'''
+		Return CSV-like string
+
+		**Arguments**
+		- `sep`: the CSV separator
+		- `include_fields`: subset of fields to write; if `None`, write all fields
+		- `exclude_fields`: subset of fields to ignore (takes precedence over `include_fields`);
+		  to exclude only the SE for field `foo`, include `SE_foo`; same goes for `correl_foo`
+		- `float_format`: formatting for float values. May be a string (ex: `'z.3f'`), a callable
+		  (ex: `lambda x: '.2f' if x else '0'`), or a dictionary of strings and/or callables, with dict keys
+		  corresponding to different fields (ex: `{'foo': '.2e', 'bar': (lambda x: str(x))}`).
+		- `correl_format`: same as `float_format`, but applies to correlation matrix elements
+		- `default_float_format`: only used when `float_format` is a dict; in that case, fields
+		  missing from `float_format.keys()` will use `default_float_format` instead.
+		  corresponding to different fields (ex: `{'foo': '.2e', 'bar': `lambda x: str(x)`}`).
+		- `default_correl_format`: same as `default_float_format`, but applies to `correl_format`
+		- `show_nv`: show nominal values
+		- `show_se`: show standard errors
+		- `show_correl`: show correlations for any given field (ex: `correl_X`)
+		- `show_mixed_correl`: show correlations between different fields (ex: `correl_X_Y`)
+		- `align`: right-align (`>`), left-align (`<`), or don't align (empty string) CSV values
+		- `atol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
+		  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
+		- `rtol`: passed to [numpy.allclose()](https://numpy.org/doc/stable/reference/generated/numpy.allclose.html)
+		  when deciding whether a matrix is equal to the identity matrix or to the zero matrix
 
 
-def save_data_to_file(data, filename, **kwargs):
-	'''
-	aaa
-	
-	Write correlated data to a CSV file.
+		**Example**
 
-	**Arguments**
-	- `data`: dict of arrays with strings, floats or correlated data
-	- `filename`: `str` or path to the file to read from
-	- `kwargs`: passed to correldata.data_string()
-	'''
-	with open(filename, 'w') as fid:
-		return fid.write(data_string(data, **kwargs))
+		```py
+		from correldata import uarray, CorrelData
+
+		X = uarray(_uc.correlated_values([1., 2., 3.], _np.eye(3)*0.09))
+		Y = uarray(_uc.correlated_values([4., 5., 6.], _np.eye(3)*0.16))
+
+		data = CorrelData(
+			X = X,
+			Y = Y,
+			Z = X+Y,
+		)
+
+		print(
+			data.str(
+				float_format = 'z.1f',
+				correl_format = 'z.1f',
+			)
+		)
+		```
+		yields:
+		```
+		  X, SE_X,   Y, SE_Y,   Z, SE_Z, correl_X_Z,    ,    , correl_Y_Z,    ,
+		1.0,  0.3, 4.0,  0.4, 5.0,  0.5,        0.6, 0.0, 0.0,        0.8, 0.0, 0.0
+		2.0,  0.3, 5.0,  0.4, 7.0,  0.5,        0.0, 0.6, 0.0,        0.0, 0.8, 0.0
+		3.0,  0.3, 6.0,  0.4, 9.0,  0.5,        0.0, 0.0, 0.6,        0.0, 0.0, 0.8
+		```
+		'''
+		if include_fields is None:
+			include_fields = [_ for _ in self]
+		cols, ufields = [], []
+		for f in include_fields:
+			if f in exclude_fields:
+				continue
+			if isinstance(self[f], uarray):
+				ufields.append(f)
+				N = self[f].size
+				if show_nv:
+					cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in self[f].n])
+				if show_se and (f'SE_{f}' not in exclude_fields):
+					cols.append([f'SE_{f}'] + [f2s(_, float_format, f, default_float_format) for _ in self[f].s])
+				if show_correl and (f'correl_{f}' not in exclude_fields):
+					CM = _uc.correlation_matrix(self[f])
+					if not _np.allclose(CM, _np.eye(N), atol = atol, rtol = rtol):
+						for i in range(N):
+							cols.append(
+								['' if i else f'correl_{f}']
+								+ [
+									f2s(
+										CM[i,j],
+										correl_format,
+										f,
+										default_correl_format,
+									)
+									for j in range(N)
+								]
+							)
+			elif show_nv:
+					cols.append([f] + [f2s(_, float_format, f, default_float_format) for _ in self[f]])
+
+		if show_mixed_correl:
+			for i in range(len(ufields)):
+				for j in range(i):
+					if f'correl_{ufields[i]}_{ufields[j]}' in exclude_fields or f'correl_{ufields[j]}_{ufields[i]}' in exclude_fields:
+						continue
+					CM = _uc.correlation_matrix((*self[ufields[i]], *self[ufields[j]]))[:N, -N:]
+					if not _np.allclose(CM, _np.zeros((N, N)), atol = atol, rtol = rtol):
+						for k in range(N):
+							cols.append(
+								['' if k else f'correl_{ufields[j]}_{ufields[i]}']
+								+ [
+									f2s(
+										CM[k,l],
+										correl_format,
+										f,
+										default_correl_format,
+									)
+									for l in range(N)
+								]
+							)
+
+		lines = list(map(list, zip(*cols)))
+
+		if align:
+			lengths = [max([len(e) for e in l]) for l in cols]
+			for l in lines:
+				for k,ln in enumerate(lengths):
+					l[k] = f'{l[k]:{align}{ln}s}'
+			return '\n'.join([(sep+' ').join(l) for l in lines])
+
+		return '\n'.join([sep.join(l) for l in lines])
+
+	def to_csv(self, filename, **kwargs):
+		'''
+		Write data to a CSV file.
+
+		**Arguments**
+		- `filename`: `str` or path to the CSV file
+		- `kwargs`: passed to `CorrelData.str()`
+		'''
+		with open(filename, 'w') as fid:
+			return fid.write(self.str(**kwargs))
 
 
 def as_uarray(
@@ -483,7 +675,7 @@ def as_uarray(
 	Convert the input to an uarray. If the input is a single float or
 	[UFloat](https://pythonhosted.org/uncertainties/tech_guide.html),
 	yields an uarray of size 1.
-	
+
 	**Arguments**
 	* `X`: nominal value(s)
 	* `CM`: covariance matrix of X; not needed if elements of X are of type
@@ -492,10 +684,10 @@ def as_uarray(
 	* `Xse`,: SE of X; not needed if elements of X are of type
 		[`UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
 		or if `CM` is specified.
-	
+
 	If neither `CM` nor `Xse` are specified, assume SE = 0.
 	"""
-	
+
 	if isinstance(X, uarray):
 		return X
 
@@ -504,7 +696,7 @@ def as_uarray(
 			return uarray(X)
 		else:
 			X = X.astype(float)
-			
+
 			if CM is not None:
 				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
 
@@ -515,7 +707,7 @@ def as_uarray(
 				CM = _np.diag((*Xse,))**2
 
 			return uarray(_uc.correlated_values(X, CM))
-				
+
 	if isinstance(X, _uc.UFloat):
 		return uarray([X])
 
@@ -537,7 +729,7 @@ def as_pair_of_uarrays(
 ) -> uarray:
 	"""
 	Convert the input to a pair of uarrays.
-	
+
 	**Arguments**
 	* `X`: x values
 	* `Y`: y values
@@ -547,10 +739,10 @@ def as_pair_of_uarrays(
 	* `Xse`, `Yse`: SE of X and Y; not needed if elements of X and Y are of type
 		[`uncertainties.UFloat`](https://pythonhosted.org/uncertainties/tech_guide.html)
 		or if `CM` is specified.
-	
+
 	If neither `CM`, `Xse` nor `Yse` are specified, assume SE = 0.
 	"""
-	
+
 	if type(X) is not type(Y):
 		raise TypeError(f'X ({type(X)}) and Y ({type(Y)}) must have the same type.')
 
@@ -567,7 +759,7 @@ def as_pair_of_uarrays(
 		else:
 			X = X.astype(float)
 			Y = Y.astype(float)
-			
+
 			if CM is not None:
 				if Xse is not None: raise ValueError('Too much information: Xse is redundant because CM is already specified.')
 				if Yse is not None: raise ValueError('Too much information: Yse is redundant because CM is already specified.')
@@ -579,13 +771,13 @@ def as_pair_of_uarrays(
 					Yse = Y * 0
 
 				CMx = _np.diag((*Xse,))**2
-				CMy = _np.diag((*Yse,))**2			
+				CMy = _np.diag((*Yse,))**2
 				return uarray(_uc.correlated_values(X, CMx)), uarray(_uc.correlated_values(Y, CMy))
 
 			else:
 				XY = uarray(_uc.correlated_values([*X, *Y], CM))
 				return XY[:X.size], XY[X.size:]
-				
+
 	if isinstance(X, _uc.UFloat):
 		return uarray([X]), uarray([Y])
 
@@ -597,7 +789,7 @@ def as_pair_of_uarrays(
 
 		if CM is None:
 			if Xse is None: raise ValueError('Not enough information: specify either CM or Xse.')
-			if Yse is None: raise ValueError('Not enough information: specify either CM or Yse.')				
+			if Yse is None: raise ValueError('Not enough information: specify either CM or Yse.')
 
 			CM = _np.diag([Xse, Yse])**2
 
