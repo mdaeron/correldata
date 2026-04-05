@@ -8,6 +8,7 @@ as defined in the [uncertainties](https://pypi.org/project/uncertainties) librar
 
 import os as _os
 import numpy as _np
+import warnings as _wrn
 import uncertainties as _uc
 
 from typing import Callable, Hashable, Any
@@ -83,6 +84,72 @@ def f2s(
 		if isinstance (fb, Callable):
 			return fb(x)
 	raise TypeError(f'f2s() formatting argument f = {repr(f)} is neither a string nor a callable nor a dict.')
+
+
+def read_list(
+	data: list,
+):
+	"""
+	Read data from a list of dicts and return a `CorrelData` instance.
+
+	Valid arguments are lists of dicts where each dict share a non-empty set of keys,
+	i.e. there must be one of more keys that all dicts have in common.
+
+	> [!NOTE]
+	> Primarily intended for data where uncertainties are already specified as
+	> [UFloat](https://pythonhosted.org/uncertainties/tech_guide.html) values.
+	> In other words, this function offers no built-in way to specify uncertainties
+	> (no keywords such as `SE`, `correl`, or `covar`).
+
+	> [!TIP]
+	> **Example**
+	>
+	> ```py
+	> import correldata
+	>
+	> foo = correldata.CorrelData(
+	>     X = [1., 2., 3.],
+	>     SE_X = [1., 1., 1.],
+	>     Y = [4., 5., 6.],
+	>     SE_Y = [1., 1., 1.],
+	> )
+	>
+	> U = foo['X'] + foo['Y']
+	> V = foo['X'] - foo['Y']
+	>
+	> bar = correldata.read_list([
+	>     dict(Name = 'abc', U = U[0], V = V[0]),
+	>     dict(Name = 'def', U = U[1], V = V[1]),
+	>     dict(Name = 'ghi', U = U[2], V = V[2]),
+	> ])
+	>
+	> print(bar.str())
+	> ```
+	> yields:
+	> ```text
+	> Name, U,    SE_U,  V,    SE_V
+	>  abc, 5, 1.41421, -3, 1.41421
+	>  def, 7, 1.41421, -3, 1.41421
+	>  ghi, 9, 1.41421, -3, 1.41421
+	> ```
+	"""
+	if len(data) == 0:
+		raise _wrn.warn("Input list is empty; returning None.")
+		return None
+
+	shared_keys = [k for k in data[0]]
+	for row in data[1:]:
+		shared_keys = [k for k in shared_keys if k in row]
+
+	if len(shared_keys) == 0:
+		raise _wrn.warn("No common subset of keys; returning None.")
+		return None
+
+	data_dict = {}
+	for k in shared_keys:
+		data_dict[k] = [row[k] for row in data]
+
+	return CorrelData(data_dict)
 
 
 def read_str(
