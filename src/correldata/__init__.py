@@ -336,7 +336,7 @@ def read_str(
 	for i, x in enumerate(values):
 		allvalues[x] = corvalues[i*N:i*N+N]
 
-	return allvalues
+	return CorrelData(allvalues)
 
 
 def read_csv(
