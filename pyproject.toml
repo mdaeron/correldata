@@ -1,6 +1,6 @@
 [project]
 name = "correldata"
-version = "2.0.0b4"
+version = "2.0.0"
 description = "Dataframe-like tables of data with correlated uncertainties"
 readme = "readme.md"
 license = { "text" = "MIT License: https://opensource.org/licenses/MIT" }
